@@ -46,6 +46,8 @@ public class BenchmarkTest
             assertThat( multiThreadedReader( file, 12 ) ).describedAs( "12 threads" ).isEqualTo( expected + 1 );
             assertThat( multiThreadedReader( file, 8 ) ).as( "8 threads" ).isEqualTo( expected + 1 );
             assertThat( singleReaderSingleWorker( file ) ).as( "stw" ).isEqualTo( expected );
+            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "stw" ).isEqualTo( expected );
+
             System.out.println( "" );
         }
 
@@ -86,6 +88,26 @@ public class BenchmarkTest
         {
             System.out.print(
                 ", MTR, " + nThreads + " T (" + first + ")=" + ( System.currentTimeMillis() - milliStart ) );
+        }
+    }
+
+    private static int multiThreadedSingleReceiver( File basedir, int nThreads )
+        throws InterruptedException
+    {
+        long milliStart = System.currentTimeMillis();
+        MyFileReceiver ffr = new MyFileReceiver();
+        try
+        {
+            MultiThreadedSingleReceiver pipelinedDirectoryScanner =
+                new MultiThreadedSingleReceiver( basedir, null, null, nThreads );
+
+            pipelinedDirectoryScanner.scanThreaded();
+            pipelinedDirectoryScanner.getScanResult( ffr );
+            return ffr.size;
+        }
+        finally
+        {
+            System.out.print( ", MT(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
 

@@ -1,56 +1,81 @@
 package org.rosenvold;
 
+
 import org.rosenvold.reference.ScannerTools;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Reads with multiple threads
  */
-public class ForkedMultiThread
+public class MultiThreadedSingleReceiver
     extends ModernBase
 {
-    private final ConcurrentLinkedDeque<String> queue = new ConcurrentLinkedDeque<String>();
+
+    private final ConcurrentLinkedQueue<String> queue;
 
     private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
 
+    /**
+     * Whether or not the file system should be treated as a case sensitive
+     * one.
+     */
+    private boolean isCaseSensitive = true;
+
+    private final ExecutorService executor;
+
     public static final String POISON = "*POISON*";
+
 
     /**
      * Sole constructor.
      *
      * @noinspection JavaDoc
      */
-    public ForkedMultiThread( File basedir, String[] includes, String[] excludes )
+    public MultiThreadedSingleReceiver( File basedir, String[] includes, String[] excludes, int nThreads )
     {
         super( basedir, includes, excludes );
+
+        queue = new ConcurrentLinkedQueue();
         ScannerTools.verifyBaseDir( basedir );
+        executor = Executors.newFixedThreadPool( nThreads );
+
     }
 
-
-    void getScanResult(FastFileReceiver fastFileReceiver)
+    void getScanResult( FastFileReceiver fastFileReceiver )
     {
-        List<String> result = new ArrayList<String>();
-        String item;
-        while ( ( item = queue.poll() ) != POISON )
+        String name;
+        while ( true )
         {
-            if ( item != null )
+            name = queue.poll();
+            if ( name != null )
             {
-                if ( isIncluded( item ) )
+                if ( name.equals( POISON ) )
                 {
-                    if ( !isExcluded( item ) )
-                    {
-                        fastFileReceiver.accept( new FastFile( item ) );
-                        result.add( item );
-                    }
+                    return;
+                }
+
+                if ( isIncluded( name ) && !isExcluded( name ))
+                {
+                    fastFileReceiver.accept( new FastFile( name ) );
                 }
             }
         }
     }
+
+
+    public ConcurrentLinkedQueue<String> getQueue()
+    {
+        return queue;
+    }
+
 
     /**
      * Scans the base directory for files which match at least one include
@@ -68,7 +93,7 @@ public class ForkedMultiThread
         {
             public void run()
             {
-                scandir( basedir, "" );
+                asynchscandir( basedir, "" );
             }
         };
 
@@ -81,24 +106,34 @@ public class ForkedMultiThread
         }
     }
 
-    public Thread scanThreaded()
+    public void scanThreaded()
         throws IllegalStateException, InterruptedException
     {
         Runnable scanner = new Runnable()
         {
             public void run()
             {
-                scandir( basedir, "" );
-                queue.add( POISON );
+                asynchscandir( basedir, "" );
             }
         };
 
         final Thread thread = new Thread( scanner );
         thread.start();
-        return thread;
     }
 
-    private void scandir( File dir, String vpath )
+    private void asynchscandir( File dir, String vpath )
+    {
+        List<String> elementsFound = Collections.synchronizedList( new ArrayList() );
+        scandir( dir, vpath, elementsFound );
+        queue.addAll( elementsFound );
+        if ( threadsStarted.decrementAndGet() == 0 )
+        {
+            queue.add( POISON );
+        }
+    }
+
+
+    private void scandir( File dir, String vpath, List elementsFound )
     {
         String[] newfiles = dir.list();
 
@@ -115,7 +150,13 @@ public class ForkedMultiThread
             File file = new File( dir, newfile );
             if ( file.isFile() )
             {
-                queue.add( name );
+                if ( isIncluded( name ) )
+                {
+                    if ( !isExcluded( name ) )
+                    {
+                        elementsFound.add( name );
+                    }
+                }
             }
             else if ( file.isDirectory() )
             {
@@ -131,7 +172,9 @@ public class ForkedMultiThread
                         }
                         else
                         {
-                            scandir( file, name + File.separator );
+                            final Runnable target = new AsynchScanner( file, name + File.separator );
+                            executor.submit( target );
+                            threadsStarted.incrementAndGet();
                         }
                     }
                 }
@@ -139,9 +182,33 @@ public class ForkedMultiThread
         }
         if ( firstDir != null )
         {
-            scandir( firstDir, firstName + File.separator );
+            scandir( firstDir, firstName + File.separator, elementsFound );
         }
 
+    }
+
+    class AsynchScanner
+        implements Runnable
+    {
+        File dir;
+
+        String file;
+
+        AsynchScanner( File dir, String file )
+        {
+            this.dir = dir;
+            this.file = file;
+        }
+
+        public void run()
+        {
+            asynchscandir( dir, file );
+        }
+    }
+
+    public void close()
+    {
+        executor.shutdown();
     }
 
 }
