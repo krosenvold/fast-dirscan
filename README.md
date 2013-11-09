@@ -89,7 +89,30 @@ Cons:
 2. It might be necessary to create an alogorithm that needs to be tuned for each individual
    system to achieve optimal performance.
 
+### Multiple Readers With Single Worker Each
+
+![Multiple Reader Threads With 1 worker for each](images/MultipleReadersWithSingleWorkerEach.png)
+
+Each reader thread has a dedicated queue to a single worker thread.
+
+Pros:
+1. Simple handoff strategy with single writer queue.
+
+Cons:
+1. Same as for all multiple reader thread strategies.
+
+Variations:
+1. Multiple worker threads per single reader thread.
+
 ### 2 Thread pools: Multiple Readers, multiple workers.
 
 This last permutation is a combination of the above models; more than on thread reads the disk, and hands
-of to a different worker pool. 
+of to a different worker pool.
+
+
+How to work with this project
+=======
+
+Create a directory "fastdirscan-testdata" in your home directory (~/fastdirscan-testdata).
+
+Fill this directory with the files you want for benchmarking

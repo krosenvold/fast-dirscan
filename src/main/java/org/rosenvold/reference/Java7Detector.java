@@ -16,17 +16,36 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+package org.rosenvold.reference;
 
-package org.rosenvold.pipelined;
-
-import java.util.List;
 
 /**
+ * Java7 feature detection
+ *
  * @author Kristian Rosenvold
  */
-interface PipelineApi
+class Java7Detector
 {
-    void addElement(String fileName);
 
-    void addElements( List elements);
+    private static final boolean isJava7;
+
+    static
+    {
+        boolean isJava7x = true;
+        try
+        {
+            Class.forName( "java.nio.file.Files" );
+        }
+        catch ( Exception e )
+        {
+            isJava7x = false;
+        }
+        isJava7 = isJava7x;
+    }
+
+
+    public static boolean isJava7()
+    {
+        return isJava7;
+    }
 }

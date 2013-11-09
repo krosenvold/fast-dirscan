@@ -17,12 +17,13 @@
  * under the License.
  */
 
-package org.rosenvold.exp;
+package org.rosenvold.reference;
 
 import org.codehaus.plexus.util.SelectorUtils;
-import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
+
+import static org.rosenvold.reference.ScannerTools.normalizePattern;
 
 
 /**
@@ -302,40 +303,6 @@ public abstract class AbstractScanner
                 this.excludes[i] = normalizePattern( excludes[i] );
             }
         }
-    }
-
-    /**
-     * Normalizes the pattern, e.g. converts forward and backward slashes to the platform-specific file separator.
-     *
-     * @param pattern The pattern to normalize, must not be <code>null</code>.
-     * @return The normalized pattern, never <code>null</code>.
-     */
-    private String normalizePattern( String pattern )
-    {
-        pattern = pattern.trim();
-
-        if ( pattern.startsWith( SelectorUtils.REGEX_HANDLER_PREFIX ) )
-        {
-            if ( File.separatorChar == '\\' )
-            {
-                pattern = StringUtils.replace( pattern, "/", "\\\\" );
-            }
-            else
-            {
-                pattern = StringUtils.replace( pattern, "\\\\", "/" );
-            }
-        }
-        else
-        {
-            pattern = pattern.replace( File.separatorChar == '/' ? '\\' : '/', File.separatorChar );
-
-            if ( pattern.endsWith( File.separator ) )
-            {
-                pattern += "**";
-            }
-        }
-
-        return pattern;
     }
 
     /**

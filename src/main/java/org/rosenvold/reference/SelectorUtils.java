@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.rosenvold.exp;
+package org.rosenvold.reference;
 
 import java.io.File;
 import java.util.ArrayList;
