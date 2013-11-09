@@ -45,8 +45,9 @@ public class BenchmarkTest
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
             assertThat( multiThreadedReader( file, 12 ) ).describedAs( "12 threads" ).isEqualTo( expected + 1 );
             assertThat( multiThreadedReader( file, 8 ) ).as( "8 threads" ).isEqualTo( expected + 1 );
-            assertThat( singleReaderSingleWorker( file ) ).as( "stw" ).isEqualTo( expected );
-            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "stw" ).isEqualTo( expected );
+            assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
+            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "mtsr" ).isEqualTo( expected );
+            assertThat( multiThreaded( file, 12 ) ).as( "mt" ).isEqualTo( expected );
 
             System.out.println( "" );
         }
@@ -103,6 +104,27 @@ public class BenchmarkTest
 
             pipelinedDirectoryScanner.scanThreaded();
             pipelinedDirectoryScanner.getScanResult( ffr );
+            pipelinedDirectoryScanner.close();
+            return ffr.size;
+        }
+        finally
+        {
+            System.out.print( ", MTSR(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+        }
+    }
+
+    private static int multiThreaded( File basedir, int nThreads )
+        throws InterruptedException
+    {
+        long milliStart = System.currentTimeMillis();
+        CocurrentFileReceiver ffr = new CocurrentFileReceiver();
+        try
+        {
+            MultiThreaded scanner = new MultiThreaded( basedir, null, null, ffr, nThreads );
+
+            scanner.scanThreaded();
+            scanner.getScanResult(  );
+            scanner.close();
             return ffr.size;
         }
         finally
@@ -133,6 +155,30 @@ public class BenchmarkTest
         }
     }
 
+    static class CocurrentFileReceiver
+        implements FastFileReceiver
+    {
+        private FastFile first;
+
+        private long firstSeenAt;
+
+        long milliStart = System.currentTimeMillis();
+
+         int size = 0;
+
+        public void accept( FastFile file )
+        {
+            if ( first == null )
+            {
+                firstSeenAt = System.currentTimeMillis() - milliStart;
+                first = file;
+            }
+            synchronized ( this ){
+            size++;
+            }
+        }
+    }
+
     private static int singleReaderSingleWorker( File basedir )
         throws InterruptedException
     {
@@ -147,7 +193,7 @@ public class BenchmarkTest
         }
         finally
         {
-            System.out.print( ", FST(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+            System.out.print( ", SRSW(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
 

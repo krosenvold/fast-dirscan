@@ -7,73 +7,41 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Reads with multiple threads, pipes thru single caller thread
+ * Reads with multiple threads
  */
-public class MultiThreadedSingleReceiver
+public class MultiThreaded
     extends ModernBase
 {
 
-    private final ConcurrentLinkedQueue<String> queue;
-
     private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
-
-    /**
-     * Whether or not the file system should be treated as a case sensitive
-     * one.
-     */
-    private boolean isCaseSensitive = true;
 
     private final ExecutorService executor;
 
-    public static final String POISON = "*POISON*";
-
-
+    private final FastFileReceiver fastFileReceiver;
     /**
      * Sole constructor.
      *
      * @noinspection JavaDoc
      */
-    public MultiThreadedSingleReceiver( File basedir, String[] includes, String[] excludes, int nThreads )
+    public MultiThreaded( File basedir, String[] includes, String[] excludes, FastFileReceiver fastFileReceiver, int nThreads )
     {
         super( basedir, includes, excludes );
-
-        queue = new ConcurrentLinkedQueue();
         ScannerTools.verifyBaseDir( basedir );
         executor = Executors.newFixedThreadPool( nThreads );
-
+        this.fastFileReceiver = fastFileReceiver;
     }
 
-    void getScanResult( FastFileReceiver fastFileReceiver )
+    public void getScanResult()
     {
-        String name;
-        while ( true )
+        while ( threadsStarted.get() > 0 )
         {
-            name = queue.poll();
-            if ( name != null )
-            {
-                if ( name.equals( POISON ) )
-                {
-                    return;
-                }
-
-                if ( isIncluded( name ) && !isExcluded( name ))
-                {
-                    fastFileReceiver.accept( new FastFile( name ) );
-                }
-            }
+            ;
         }
-    }
-
-
-    public ConcurrentLinkedQueue<String> getQueue()
-    {
-        return queue;
     }
 
 
@@ -123,17 +91,12 @@ public class MultiThreadedSingleReceiver
 
     private void asynchscandir( File dir, String vpath )
     {
-        List<String> elementsFound = Collections.synchronizedList( new ArrayList() );
-        scandir( dir, vpath, elementsFound );
-        queue.addAll( elementsFound );
-        if ( threadsStarted.decrementAndGet() == 0 )
-        {
-            queue.add( POISON );
-        }
+        scandir( dir, vpath );
+        threadsStarted.decrementAndGet();
     }
 
 
-    private void scandir( File dir, String vpath, List elementsFound )
+    private void scandir( File dir, String vpath )
     {
         String[] newfiles = dir.list();
 
@@ -154,7 +117,7 @@ public class MultiThreadedSingleReceiver
                 {
                     if ( !isExcluded( name ) )
                     {
-                        elementsFound.add( name );
+                        fastFileReceiver.accept( new FastFile( name ) );
                     }
                 }
             }
@@ -182,7 +145,7 @@ public class MultiThreadedSingleReceiver
         }
         if ( firstDir != null )
         {
-            scandir( firstDir, firstName + File.separator, elementsFound );
+            scandir( firstDir, firstName + File.separator );
         }
 
     }

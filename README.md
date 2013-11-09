@@ -96,12 +96,15 @@ Cons:
 Each reader thread has a dedicated queue to a single worker thread.
 
 Pros:
+
 1. Simple handoff strategy with single writer queue.
 
 Cons:
+
 1. Same as for all multiple reader thread strategies.
 
 Variations:
+
 1. Multiple worker threads per single reader thread.
 
 ### 2 Thread pools: Multiple Readers, multiple workers.
