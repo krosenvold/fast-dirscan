@@ -1,13 +1,15 @@
 
-package org.rosenvold.multithreadedreaxer;
+package org.rosenvold;
 
 
+import com.sun.swing.internal.plaf.basic.resources.basic_es;
 import org.rosenvold.reference.MatchPatterns;
 import org.rosenvold.reference.ScannerTools;
 import org.rosenvold.reference.SelectorUtils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -17,22 +19,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Reads with multiple threads
  */
-public class MultiThreadedScannerReader
+public class MultiThreadedScannerReader extends ModernBase
 {
-    /**
-     * The base directory to be scanned.
-     */
-    private final File basedir;
 
     private final ConcurrentLinkedQueue<String> queue;
 
     private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
 
-    private final MatchPatterns includesPatterns;
-
-    private final MatchPatterns excludesPatterns;
-
-    /**
+   /**
      * Whether or not the file system should be treated as a case sensitive
      * one.
      */
@@ -50,24 +44,10 @@ public class MultiThreadedScannerReader
      */
     public MultiThreadedScannerReader( File basedir, String[] includes, String[] excludes, int nThreads )
     {
-        this.basedir = basedir;
-        includesPatterns = MatchPatterns.from( ScannerTools.getIncludes( includes ) );
-        excludesPatterns = MatchPatterns.from( ScannerTools.getExcludes( excludes ) );
+        super( basedir, includes, excludes);
 
         queue = new ConcurrentLinkedQueue();
-        if ( basedir == null )
-        {
-            throw new IllegalStateException( "No basedir set" );
-        }
-        if ( !basedir.exists() )
-        {
-            throw new IllegalStateException( "basedir " + basedir + " does not exist" );
-        }
-        if ( !basedir.isDirectory() )
-        {
-            throw new IllegalStateException( "basedir " + basedir + " is not a directory" );
-        }
-
+        ScannerTools.verifyBaseDir( basedir );
         executor = Executors.newFixedThreadPool( nThreads );
 
     }
@@ -124,7 +104,7 @@ public class MultiThreadedScannerReader
     }
 
     private void asynchscandir( File dir, String vpath ){
-        List<String> elementsFound = new ArrayList();
+        List<String> elementsFound = Collections.synchronizedList(new ArrayList());
         scandir(  dir, vpath, elementsFound );
         queue.addAll( elementsFound );
         if (threadsStarted.decrementAndGet() == 0){
@@ -140,29 +120,7 @@ public class MultiThreadedScannerReader
 
         if ( newfiles == null )
         {
-            /*
-             * two reasons are mentioned in the API docs for File.list
-             * (1) dir is not a directory. This is impossible as
-             *     we wouldn't get here in this case.
-             * (2) an IO error occurred (why doesn't it throw an exception
-             *     then???)
-             */
-
-            /*
-            * [jdcasey] (2) is apparently happening to me, as this is killing one of my tests...
-            * this is affecting the assembly plugin, fwiw. I will initialize the newfiles array as
-            * zero-length for now.
-            *
-            * NOTE: I can't find the problematic code, as it appears to come from a native method
-            * in UnixFileSystem...
-            */
-            /*
-             * [bentmann] A null array will also be returned from list() on NTFS when dir refers to a soft link or
-             * junction point whose target is not existent.
-             */
             newfiles = new String[0];
-
-            // throw new IOException( "IO error scanning directory " + dir.getAbsolutePath() );
         }
 
         File firstDir = null;
@@ -226,18 +184,4 @@ public class MultiThreadedScannerReader
         }
     }
 
-    protected boolean isIncluded( String name )
-    {
-       return includesPatterns.matches( name, isCaseSensitive );
-    }
-
-    protected boolean couldHoldIncluded( String name )
-    {
-        return includesPatterns.matchesPatternStart(name, isCaseSensitive);
-    }
-
-    protected boolean isExcluded( String name )
-    {
-        return excludesPatterns.matches( name, isCaseSensitive );
-    }
 }

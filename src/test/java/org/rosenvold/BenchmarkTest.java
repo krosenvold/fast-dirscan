@@ -22,7 +22,6 @@ import java.io.File;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.Test;
-import org.rosenvold.multithreadedreaxer.MultiThreadedScannerReader;
 import org.rosenvold.reference.DirectoryScanner;
 
 import static org.fest.assertions.api.Assertions.*;
@@ -37,16 +36,17 @@ public class BenchmarkTest
     public void doRunBenchmarks()
         throws Exception
     {
-        assertThat(1).isEqualTo( 1 );
+        assertThat( 1 ).isEqualTo( 1 );
         final File file = new File( System.getProperty( "user.home" ), "fastdirscan-testdata" );
         final int expected = scanOriginal( file ).length;
         System.out.println( "Warmup complete" );
-        for ( int i = 0; i < 5; i++ )
+        for ( int i = 0; i < 10; i++ )
         {
-            assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected);
-            assertThat( multiThreadedReader( file, 12 ) ).describedAs( "12 threads" ).isEqualTo( expected + 1);
-            assertThat( multiThreadedReader( file, 8 ) ).as("8 threads").isEqualTo( expected +1 );
-            System.out.println("");
+            assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
+            assertThat( multiThreadedReader( file, 12 ) ).describedAs( "12 threads" ).isEqualTo( expected + 1 );
+            assertThat( multiThreadedReader( file, 8 ) ).as( "8 threads" ).isEqualTo( expected + 1 );
+            assertThat( singleReaderSingleWorker( file ) ).as( "stw" ).isEqualTo( expected );
+            System.out.println( "" );
         }
 
     }
@@ -59,8 +59,8 @@ public class BenchmarkTest
         long milliStart = System.currentTimeMillis();
         try
         {
-            MultiThreadedScannerReader
-                pipelinedDirectoryScanner = new MultiThreadedScannerReader( basedir, null, null, nThreads );
+            MultiThreadedScannerReader pipelinedDirectoryScanner =
+                new MultiThreadedScannerReader( basedir, null, null, nThreads );
             pipelinedDirectoryScanner.scanThreaded();
             ConcurrentLinkedQueue queue = pipelinedDirectoryScanner.getQueue();
 
@@ -74,7 +74,7 @@ public class BenchmarkTest
                     i++;
                     if ( i == 1 )
                     {
-                        first = (System.nanoTime() - start) / 1000;
+                        first = ( System.nanoTime() - start ) / 1000;
                     }
                 }
             }
@@ -83,7 +83,50 @@ public class BenchmarkTest
         }
         finally
         {
-            System.out.print( ", multiThreadedReader, " + nThreads + " threads (" + first + ")=" + ( System.currentTimeMillis() - milliStart ) );
+            System.out.print(
+                ", MTR, " + nThreads + " T (" + first + ")=" + ( System.currentTimeMillis() - milliStart ) );
+        }
+    }
+
+    static class MyFileReceiver
+        implements FastFileReceiver
+    {
+        private FastFile first;
+
+        private long firstSeenAt;
+
+        long milliStart = System.currentTimeMillis();
+
+        volatile int size = 0;
+
+        public void accept( FastFile file )
+        {
+            if ( first == null )
+            {
+                firstSeenAt = System.currentTimeMillis() - milliStart;
+                first = file;
+            }
+            size++;
+        }
+    }
+
+    private static int singleReaderSingleWorker( File basedir )
+        throws InterruptedException
+    {
+        long milliStart = System.currentTimeMillis();
+        int size = 0;
+
+        MyFileReceiver ffr = new MyFileReceiver();
+        try
+        {
+            ForkedSingleThread fst = new ForkedSingleThread( basedir, null, null );
+            fst.scanThreaded();
+            fst.getScanResult( ffr );
+            return ffr.size;
+        }
+        finally
+        {
+            System.out.print( ", FST(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
 

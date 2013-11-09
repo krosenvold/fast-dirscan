@@ -267,18 +267,7 @@ public class DirectoryScanner
     public void scan()
         throws IllegalStateException
     {
-        if ( basedir == null )
-        {
-            throw new IllegalStateException( "No basedir set" );
-        }
-        if ( !basedir.exists() )
-        {
-            throw new IllegalStateException( "basedir " + basedir + " does not exist" );
-        }
-        if ( !basedir.isDirectory() )
-        {
-            throw new IllegalStateException( "basedir " + basedir + " is not a directory" );
-        }
+        ScannerTools.verifyBaseDir( basedir );
 
         setupDefaultFilters();
         setupMatchPatterns();
