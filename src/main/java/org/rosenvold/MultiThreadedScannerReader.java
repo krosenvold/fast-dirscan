@@ -184,4 +184,8 @@ public class MultiThreadedScannerReader extends ModernBase
         }
     }
 
+    public void close(){
+        executor.shutdown();
+    }
+
 }

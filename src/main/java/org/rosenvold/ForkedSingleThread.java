@@ -3,15 +3,9 @@ package org.rosenvold;
 import org.mentaqueue.AtomicQueue;
 import org.mentaqueue.BatchingQueue;
 import org.mentaqueue.util.Builder;
-import org.rosenvold.ModernBase;
 import org.rosenvold.reference.ScannerTools;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -20,7 +14,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ForkedSingleThread
     extends ModernBase
 {
-    private final ConcurrentLinkedDeque<String> queue = new ConcurrentLinkedDeque<String>();
+    final BatchingQueue<StringBuilder> queue = new AtomicQueue<StringBuilder>( 2048, new Builder<StringBuilder>()
+    {
+        public StringBuilder newInstance()
+        {
+            return new StringBuilder( 1024 );
+        }
+    } );
 
     private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
 
@@ -38,22 +38,34 @@ public class ForkedSingleThread
     }
 
 
-    void getScanResult(FastFileReceiver fastFileReceiver)
+    void getScanResult( FastFileReceiver fastFileReceiver )
     {
-        List<String> result = new ArrayList<String>();
-        String item;
-        while ( ( item = queue.poll() ) != POISON )
+        StringBuilder item;
+        while ( true )
         {
-            if ( item != null )
+            long avail = queue.availableToPoll();
+            if ( avail > 0 )
             {
-                if ( isIncluded( item ) )
+                for ( int i = 0; i < avail; i++ )
                 {
-                    if ( !isExcluded( item ) )
+                    item = queue.poll();
+                    if ( item != null )
                     {
-                        fastFileReceiver.accept( new FastFile( item ) );
-                        result.add( item );
+                        String name = item.toString();
+                        if ( name.equals( POISON ) )
+                        {
+                            return;
+                        }
+                        if ( isIncluded( name ) )
+                        {
+                            if ( !isExcluded( name ) )
+                            {
+                                fastFileReceiver.accept( new FastFile( name ) );
+                            }
+                        }
                     }
                 }
+                queue.donePolling();
             }
         }
     }
@@ -95,7 +107,15 @@ public class ForkedSingleThread
             public void run()
             {
                 scandir( basedir, "" );
-                queue.add( POISON );
+                StringBuilder sb = queue.nextToDispatch();
+                while ( sb == null )
+                {
+                    doSleep();
+                    sb = queue.nextToDispatch();
+                }
+                sb.setLength( 0 );
+                sb.append( POISON );
+                queue.flush();
             }
         };
 
@@ -104,50 +124,42 @@ public class ForkedSingleThread
         return thread;
     }
 
+    private void doSleep()
+    {
+    }
+
     private void scandir( File dir, String vpath )
     {
         String[] newfiles = dir.list();
 
-        if ( newfiles == null )
+        if ( newfiles != null )
         {
-            newfiles = new String[0];
-        }
-
-        File firstDir = null;
-        String firstName = null;
-        for ( String newfile : newfiles )
-        {
-            String name = vpath + newfile;
-            File file = new File( dir, newfile );
-            if ( file.isFile() )
+            for ( String newfile : newfiles )
             {
-                queue.add( name );
-            }
-            else if ( file.isDirectory() )
-            {
-                final boolean couldHoldIncluded = couldHoldIncluded( name );
-                if ( isIncluded( name ) || couldHoldIncluded )
+                String name = vpath + newfile;
+                File file = new File( dir, newfile );
+                if ( file.isFile() )
                 {
-                    if ( !isExcluded( name ) || couldHoldIncluded )
+                    StringBuilder sb = queue.nextToDispatch();
+                    while ( sb == null )
                     {
-                        if ( firstDir == null )
-                        {
-                            firstDir = file;
-                            firstName = name;
-                        }
-                        else
-                        {
-                            scandir( file, name + File.separator );
-                        }
+                        doSleep();
+                        sb = queue.nextToDispatch();
+                    }
+                    sb.setLength( 0 );
+                    sb.append( name );
+                    queue.flush();
+                }
+                else if ( file.isDirectory() )
+                {
+                    boolean shouldInclude = isIncluded( name ) && !isExcluded( name );
+                    if ( shouldInclude || couldHoldIncluded( name ) )
+                    {
+                        scandir( file, name + File.separator );
                     }
                 }
             }
         }
-        if ( firstDir != null )
-        {
-            scandir( firstDir, firstName + File.separator );
-        }
-
     }
 
 }

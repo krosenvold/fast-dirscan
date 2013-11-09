@@ -79,6 +79,7 @@ public class BenchmarkTest
                 }
             }
             while ( take != MultiThreadedScannerReader.POISON );
+            pipelinedDirectoryScanner.close();
             return i;
         }
         finally
@@ -114,8 +115,6 @@ public class BenchmarkTest
         throws InterruptedException
     {
         long milliStart = System.currentTimeMillis();
-        int size = 0;
-
         MyFileReceiver ffr = new MyFileReceiver();
         try
         {
