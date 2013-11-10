@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Reads with multiple threads
  */
-public class SingleReader
+public class SingleReaderSingleWorker
     extends ModernBase
 {
     final BatchingQueue<StringBuilder> queue = new AtomicQueue<StringBuilder>( 2048, new Builder<StringBuilder>()
@@ -31,7 +31,7 @@ public class SingleReader
      *
      * @noinspection JavaDoc
      */
-    public SingleReader( File basedir, String[] includes, String[] excludes )
+    public SingleReaderSingleWorker( File basedir, String[] includes, String[] excludes )
     {
         super( basedir, includes, excludes );
         ScannerTools.verifyBaseDir( basedir );

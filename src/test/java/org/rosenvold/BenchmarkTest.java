@@ -19,6 +19,7 @@
 package org.rosenvold;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
 import org.rosenvold.reference.DirectoryScanner;
@@ -57,7 +58,7 @@ public class BenchmarkTest
         throws InterruptedException
     {
         long milliStart = System.currentTimeMillis();
-        MyFileReceiver ffr = new MyFileReceiver();
+        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
         try
         {
             MultiReaderSingleWorker pipelinedDirectoryScanner =
@@ -66,7 +67,7 @@ public class BenchmarkTest
             pipelinedDirectoryScanner.scanThreaded();
             pipelinedDirectoryScanner.getScanResult( ffr );
             pipelinedDirectoryScanner.close();
-            return ffr.size;
+            return ffr.recvd.get();
         }
         finally
         {
@@ -78,7 +79,7 @@ public class BenchmarkTest
         throws InterruptedException
     {
         long milliStart = System.currentTimeMillis();
-        CocurrentFileReceiver ffr = new CocurrentFileReceiver();
+        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
         try
         {
             MultiReader scanner = new MultiReader( basedir, null, null, ffr, nThreads );
@@ -86,7 +87,7 @@ public class BenchmarkTest
             scanner.scanThreaded();
             scanner.getScanResult(  );
             scanner.close();
-            return ffr.size;
+            return ffr.recvd.get();
         }
         finally
         {
@@ -94,7 +95,7 @@ public class BenchmarkTest
         }
     }
 
-    static class MyFileReceiver
+    static class ConcurrentFileReceiver
         implements FastFileReceiver
     {
         private FastFile first;
@@ -103,7 +104,7 @@ public class BenchmarkTest
 
         long milliStart = System.currentTimeMillis();
 
-        volatile int size = 0;
+        private final AtomicInteger recvd = new AtomicInteger( 0 );
 
         public void accept( FastFile file )
         {
@@ -112,31 +113,7 @@ public class BenchmarkTest
                 firstSeenAt = System.currentTimeMillis() - milliStart;
                 first = file;
             }
-            size++;
-        }
-    }
-
-    static class CocurrentFileReceiver
-        implements FastFileReceiver
-    {
-        private FastFile first;
-
-        private long firstSeenAt;
-
-        long milliStart = System.currentTimeMillis();
-
-         int size = 0;
-
-        public void accept( FastFile file )
-        {
-            if ( first == null )
-            {
-                firstSeenAt = System.currentTimeMillis() - milliStart;
-                first = file;
-            }
-            synchronized ( this ){
-            size++;
-            }
+            recvd.incrementAndGet();
         }
     }
 
@@ -144,13 +121,13 @@ public class BenchmarkTest
         throws InterruptedException
     {
         long milliStart = System.currentTimeMillis();
-        MyFileReceiver ffr = new MyFileReceiver();
+        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
         try
         {
-            SingleReader fst = new SingleReader( basedir, null, null );
+            SingleReaderSingleWorker fst = new SingleReaderSingleWorker( basedir, null, null );
             fst.scanThreaded();
             fst.getScanResult( ffr );
-            return ffr.size;
+            return ffr.recvd.get();
         }
         finally
         {
