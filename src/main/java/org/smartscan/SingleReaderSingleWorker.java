@@ -137,21 +137,24 @@ public class SingleReaderSingleWorker
             {
                 String name = vpath + newfile;
                 File file = new File( dir, newfile );
+                boolean shouldInclude = isIncluded( name ) && !isExcluded( name );
                 if ( file.isFile() )
                 {
-                    StringBuilder sb = queue.nextToDispatch();
-                    while ( sb == null )
+                    if ( shouldInclude( name ) )
                     {
-                        doSleep();
-                        sb = queue.nextToDispatch();
+                        StringBuilder sb = queue.nextToDispatch();
+                        while ( sb == null )
+                        {
+                            doSleep();
+                            sb = queue.nextToDispatch();
+                        }
+                        sb.setLength( 0 );
+                        sb.append( name );
+                        queue.flush();
                     }
-                    sb.setLength( 0 );
-                    sb.append( name );
-                    queue.flush();
                 }
                 else if ( file.isDirectory() )
                 {
-                    boolean shouldInclude = isIncluded( name ) && !isExcluded( name );
                     if ( shouldInclude || couldHoldIncluded( name ) )
                     {
                         scandir( file, name + File.separator );

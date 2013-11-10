@@ -70,7 +70,7 @@ public class MultiReaderSingleWorker
         {
             String name = vpath + newfile;
             File file = new File( dir, newfile );
-            boolean shouldInclude = isIncluded( name ) && !isExcluded( name );
+            boolean shouldInclude = shouldInclude( name );
 
             if ( file.isFile() )
             {

@@ -54,4 +54,7 @@ public class ModernBase
     }
 
 
+    public boolean shouldInclude(String name){
+        return isIncluded( name ) && !isExcluded( name );
+    }
 }
