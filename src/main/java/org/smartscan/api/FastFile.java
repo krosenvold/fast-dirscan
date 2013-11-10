@@ -1,4 +1,4 @@
-package org.rosenvold;
+package org.smartscan.api;
 
 /**
  * Created by kristian on 09.11.13.

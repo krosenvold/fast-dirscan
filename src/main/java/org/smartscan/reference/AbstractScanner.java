@@ -17,13 +17,13 @@
  * under the License.
  */
 
-package org.rosenvold.reference;
+package org.smartscan.reference;
 
 import org.codehaus.plexus.util.SelectorUtils;
 
 import java.io.File;
 
-import static org.rosenvold.reference.ScannerTools.normalizePattern;
+import static org.smartscan.reference.ScannerTools.normalizePattern;
 
 
 /**

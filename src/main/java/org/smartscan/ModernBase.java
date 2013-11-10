@@ -1,7 +1,7 @@
-package org.rosenvold;
+package org.smartscan;
 
-import org.rosenvold.reference.MatchPatterns;
-import org.rosenvold.reference.ScannerTools;
+import org.smartscan.reference.MatchPatterns;
+import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
 
@@ -40,5 +40,18 @@ public class ModernBase
     {
         return excludesPatterns.matches( name, isCaseSensitive );
     }
+
+    protected void doSleep()
+    {
+        try
+        {
+            Thread.sleep( 10 );
+        }
+        catch ( InterruptedException e )
+        {
+            throw new RuntimeException( e );
+        }
+    }
+
 
 }

@@ -1,4 +1,4 @@
-package org.rosenvold.reference;
+package org.smartscan.reference;
 
 import org.codehaus.plexus.util.*;
 

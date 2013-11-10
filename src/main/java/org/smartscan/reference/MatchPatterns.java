@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.rosenvold.reference;
+package org.smartscan.reference;
 
 import java.io.File;
 import java.util.ArrayList;

@@ -1,4 +1,6 @@
-package org.rosenvold;
+package org.smartscan.api;
+
+import org.smartscan.api.FastFile;
 
 public interface FastFileReceiver
 {

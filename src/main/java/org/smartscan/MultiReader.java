@@ -1,12 +1,11 @@
-package org.rosenvold;
+package org.smartscan;
 
 
-import org.rosenvold.reference.ScannerTools;
+import org.smartscan.api.FastFile;
+import org.smartscan.api.FastFileReceiver;
+import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +22,7 @@ public class MultiReader
     private final ExecutorService executor;
 
     private final FastFileReceiver fastFileReceiver;
+
     /**
      * Sole constructor.
      *
@@ -71,9 +71,10 @@ public class MultiReader
         thread.join();
         while ( threadsStarted.get() > 0 )
         {
-            Thread.sleep( 10 );
+            doSleep();
         }
     }
+
 
     public void scanThreaded()
         throws IllegalStateException, InterruptedException
@@ -112,34 +113,28 @@ public class MultiReader
         {
             String name = vpath + newfile;
             File file = new File( dir, newfile );
+            boolean shouldInclude = isIncluded( name ) && !isExcluded( name );
             if ( file.isFile() )
             {
-                if ( isIncluded( name ) )
+                if ( shouldInclude )
                 {
-                    if ( !isExcluded( name ) )
-                    {
-                        fastFileReceiver.accept( new FastFile( name ) );
-                    }
+                    fastFileReceiver.accept( new FastFile( name ) );
                 }
             }
             else if ( file.isDirectory() )
             {
-                final boolean couldHoldIncluded = couldHoldIncluded( name );
-                if ( isIncluded( name ) || couldHoldIncluded )
+                if ( shouldInclude || couldHoldIncluded( name ) )
                 {
-                    if ( !isExcluded( name ) || couldHoldIncluded )
+                    if ( firstDir == null )
                     {
-                        if ( firstDir == null )
-                        {
-                            firstDir = file;
-                            firstName = name;
-                        }
-                        else
-                        {
-                            final Runnable target = new AsynchScanner( file, name + File.separator );
-                            executor.submit( target );
-                            threadsStarted.incrementAndGet();
-                        }
+                        firstDir = file;
+                        firstName = name;
+                    }
+                    else
+                    {
+                        final Runnable target = new AsynchScanner( file, name + File.separator );
+                        executor.submit( target );
+                        threadsStarted.incrementAndGet();
                     }
                 }
             }

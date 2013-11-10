@@ -1,12 +1,13 @@
-package org.rosenvold;
+package org.smartscan;
 
-import org.rosenvold.reference.ScannerTools;
+import org.smartscan.api.FastFile;
+import org.smartscan.api.FastFileReceiver;
+import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedTransferQueue;
@@ -34,7 +35,7 @@ public class MultiReaderSingleWorker
      */
     public MultiReaderSingleWorker( File basedir, String[] includes, String[] excludes, int nThreads )
     {
-        super( basedir, includes, excludes);
+        super( basedir, includes, excludes );
 
         queue = new LinkedTransferQueue();
         ScannerTools.verifyBaseDir( basedir );
@@ -43,16 +44,18 @@ public class MultiReaderSingleWorker
     }
 
 
-    protected void asynchscandir( File dir, String vpath ){
+    protected void asynchscandir( File dir, String vpath )
+    {
         List<String> elementsFound = Collections.synchronizedList( new ArrayList() );
-        scandir(  dir, vpath, elementsFound );
+        scandir( dir, vpath, elementsFound );
         queue.addAll( elementsFound );
-        if (threadsStarted.decrementAndGet() == 0){
+        if ( threadsStarted.decrementAndGet() == 0 )
+        {
             queue.add( POISON );
         }
     }
 
-    private void scandir( File dir, String vpath, List elementsFound )
+    private void scandir( File dir, String vpath, List<String> elementsFound )
     {
         String[] newfiles = dir.list();
 
@@ -67,34 +70,30 @@ public class MultiReaderSingleWorker
         {
             String name = vpath + newfile;
             File file = new File( dir, newfile );
+            boolean shouldInclude = isIncluded( name ) && !isExcluded( name );
+
             if ( file.isFile() )
             {
-                if ( isIncluded( name ) )
+                if ( shouldInclude )
                 {
-                    if ( !isExcluded( name ) )
-                    {
-                        elementsFound.add( name );
-                    }
+                    elementsFound.add( name );
                 }
             }
             else if ( file.isDirectory() )
             {
-                final boolean couldHoldIncluded = couldHoldIncluded( name );
-                if ( isIncluded( name ) || couldHoldIncluded )
+                if ( shouldInclude || couldHoldIncluded( name ) )
+
                 {
-                    if ( !isExcluded( name ) || couldHoldIncluded )
+                    if ( firstDir == null )
                     {
-                        if ( firstDir == null )
-                        {
-                            firstDir = file;
-                            firstName = name;
-                        }
-                        else
-                        {
-                            final Runnable target = new AsynchScanner( file, name + File.separator );
-                            executor.submit( target );
-                            threadsStarted.incrementAndGet();
-                        }
+                        firstDir = file;
+                        firstName = name;
+                    }
+                    else
+                    {
+                        final Runnable target = new AsynchScanner( file, name + File.separator );
+                        executor.submit( target );
+                        threadsStarted.incrementAndGet();
                     }
                 }
             }
@@ -106,8 +105,11 @@ public class MultiReaderSingleWorker
 
     }
 
-    protected class AsynchScanner implements Runnable {
+    protected class AsynchScanner
+        implements Runnable
+    {
         File dir;
+
         String file;
 
         AsynchScanner( File dir, String file )
@@ -118,7 +120,7 @@ public class MultiReaderSingleWorker
 
         public void run()
         {
-            asynchscandir( dir, file);
+            asynchscandir( dir, file );
         }
     }
 
@@ -137,7 +139,8 @@ public class MultiReaderSingleWorker
         thread.start();
     }
 
-    public void close(){
+    public void close()
+    {
         executor.shutdown();
     }
 
@@ -155,8 +158,9 @@ public class MultiReaderSingleWorker
         final Thread thread = new Thread( scanner );
         thread.start();
         thread.join();
-        while (threadsStarted.get() > 0){
-            Thread.sleep(10);
+        while ( threadsStarted.get() > 0 )
+        {
+            Thread.sleep( 10 );
         }
     }
 
@@ -173,7 +177,7 @@ public class MultiReaderSingleWorker
                     return;
                 }
 
-                if ( isIncluded( name ) && !isExcluded( name ))
+                if ( isIncluded( name ) && !isExcluded( name ) )
                 {
                     fastFileReceiver.accept( new FastFile( name ) );
                 }

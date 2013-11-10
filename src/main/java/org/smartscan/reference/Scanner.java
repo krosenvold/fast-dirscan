@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.rosenvold.reference;
+package org.smartscan.reference;
 
 
 import java.io.File;

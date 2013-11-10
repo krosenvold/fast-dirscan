@@ -1,9 +1,11 @@
-package org.rosenvold;
+package org.smartscan;
 
 import org.mentaqueue.AtomicQueue;
 import org.mentaqueue.BatchingQueue;
 import org.mentaqueue.util.Builder;
-import org.rosenvold.reference.ScannerTools;
+import org.smartscan.api.FastFile;
+import org.smartscan.api.FastFileReceiver;
+import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -124,9 +126,6 @@ public class SingleReaderSingleWorker
         return thread;
     }
 
-    private void doSleep()
-    {
-    }
 
     private void scandir( File dir, String vpath )
     {

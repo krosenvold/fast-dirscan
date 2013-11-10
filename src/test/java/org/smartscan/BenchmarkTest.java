@@ -16,13 +16,15 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.rosenvold;
+package org.smartscan;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-import org.rosenvold.reference.DirectoryScanner;
+import org.smartscan.api.FastFile;
+import org.smartscan.api.FastFileReceiver;
+import org.smartscan.reference.DirectoryScanner;
 
 import static org.fest.assertions.api.Assertions.*;
 
