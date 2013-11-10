@@ -130,6 +130,17 @@ public final class SelectorUtils
         return matchAntPathPatternStart( pattern.getTokenizedPathString(), str, separator, isCaseSensitive );
     }
 
+    static boolean matchAntPathPatternStart( MatchPattern pattern, String str, String[] strDirs, String separator,
+                                             boolean isCaseSensitive )
+    {
+        if ( separatorPatternStartSlashMismatch( pattern, str, separator ) )
+        {
+            return false;
+        }
+
+        return matchAntPathPatternStart( pattern.getTokenizedPathString(), str, strDirs, separator, isCaseSensitive );
+    }
+
     static boolean matchAntPathPatternStart( String pattern, String str, String separator, boolean isCaseSensitive )
     {
         // When str starts with a File.separator, pattern has to start with a
@@ -164,6 +175,11 @@ public final class SelectorUtils
     {
         String[] strDirs = tokenizePathToString( str, separator );
 
+        return matchAntPathPatternStart( patDirs, str, strDirs, separator, isCaseSensitive );
+    }
+
+    static boolean matchAntPathPatternStart( String[] patDirs, String str, String[] strDirs, String separator, boolean isCaseSensitive )
+    {
         int patIdxStart = 0;
         int patIdxEnd = patDirs.length - 1;
         int strIdxStart = 0;

@@ -80,6 +80,18 @@ public class MatchPatterns
         return false;
     }
 
+    public boolean matchesPatternStart( String name, String[] nameTokenized, boolean isCaseSensitive )
+    {
+        for ( MatchPattern includesPattern : patterns )
+        {
+            if ( includesPattern.matchPatternStart( name, nameTokenized, isCaseSensitive ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static MatchPatterns from( String... sources )
     {
         final int length = sources.length;

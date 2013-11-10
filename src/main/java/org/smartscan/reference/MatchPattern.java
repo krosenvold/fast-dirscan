@@ -107,6 +107,24 @@ public class MatchPattern
         }
     }
 
+    public boolean matchPatternStart( String str, String[] strDirs, boolean isCaseSensitive )
+    {
+        if ( regexPattern != null )
+        {
+            // FIXME: ICK! But we can't do partial matches for regex, so we have to reserve judgement until we have
+            // a file to deal with, or we can definitely say this is an exclusion...
+            return true;
+        }
+        else
+        {
+            String altStr = source.replace( '\\', '/' );
+
+            return SelectorUtils.matchAntPathPatternStart( this, str, strDirs, File.separator,
+                                                           isCaseSensitive )
+                || SelectorUtils.matchAntPathPatternStart( this, altStr, strDirs, "/", isCaseSensitive );
+        }
+    }
+
     public String[] getTokenizedPathString()
     {
         return tokenized;
@@ -123,7 +141,7 @@ public class MatchPattern
     }
 
 
-    static String[] tokenizePathToString( String path, String separator )
+    public static String[] tokenizePathToString( String path, String separator )
     {
         List<String> ret = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer( path, separator );

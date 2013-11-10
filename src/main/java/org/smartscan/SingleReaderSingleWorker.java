@@ -5,6 +5,7 @@ import org.mentaqueue.BatchingQueue;
 import org.mentaqueue.util.Builder;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
+import org.smartscan.reference.MatchPattern;
 import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
@@ -151,8 +152,9 @@ public class SingleReaderSingleWorker
                 }
                 else if ( file.isDirectory() )
                 {
-                    boolean shouldInclude = isIncluded( name ) && !isExcluded( name );
-                    if ( shouldInclude || couldHoldIncluded( name ) )
+                    String[] tokenized = MatchPattern.tokenizePathToString( name, File.separator );
+                    boolean shouldInclude = shouldInclude( name, tokenized );
+                    if ( shouldInclude || couldHoldIncluded( name, tokenized ) )
                     {
                         scandir( file, name + File.separator );
                     }

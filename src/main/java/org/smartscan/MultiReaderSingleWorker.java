@@ -2,6 +2,7 @@ package org.smartscan;
 
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
+import org.smartscan.reference.MatchPattern;
 import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
@@ -70,7 +71,8 @@ public class MultiReaderSingleWorker
         {
             String name = vpath + newfile;
             File file = new File( dir, newfile );
-            boolean shouldInclude = shouldInclude( name );
+            String[] tokenized = MatchPattern.tokenizePathToString( name, File.separator );
+            boolean shouldInclude = shouldInclude( name, tokenized );
 
             if ( file.isFile() )
             {
@@ -81,7 +83,7 @@ public class MultiReaderSingleWorker
             }
             else if ( file.isDirectory() )
             {
-                if ( shouldInclude || couldHoldIncluded( name ) )
+                if ( shouldInclude || couldHoldIncluded( name, tokenized ) )
 
                 {
                     if ( firstDir == null )
