@@ -61,12 +61,11 @@ public class BenchmarkTest
         ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
         try
         {
-            MultiReaderSingleWorker pipelinedDirectoryScanner =
-                new MultiReaderSingleWorker( basedir, null, null, nThreads );
+            MultiReaderSingleWorker scanner = new MultiReaderSingleWorker( basedir, null, null, nThreads );
 
-            pipelinedDirectoryScanner.scanThreaded();
-            pipelinedDirectoryScanner.getScanResult( ffr );
-            pipelinedDirectoryScanner.close();
+            scanner.scanThreaded();
+            scanner.getScanResult( ffr );
+            scanner.close();
             return ffr.recvd.get();
         }
         finally
