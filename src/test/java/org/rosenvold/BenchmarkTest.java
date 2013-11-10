@@ -19,7 +19,6 @@
 package org.rosenvold;
 
 import java.io.File;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.junit.Test;
 import org.rosenvold.reference.DirectoryScanner;
@@ -43,53 +42,15 @@ public class BenchmarkTest
         for ( int i = 0; i < 10; i++ )
         {
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
-            assertThat( multiThreadedReader( file, 12 ) ).describedAs( "12 threads" ).isEqualTo( expected + 1 );
-            assertThat( multiThreadedReader( file, 8 ) ).as( "8 threads" ).isEqualTo( expected + 1 );
             assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
-            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "mtsr" ).isEqualTo( expected );
-            assertThat( multiThreaded( file, 12 ) ).as( "mt" ).isEqualTo( expected );
+            assertThat( multiThreadedSingleReceiver( file, 12 ) ).describedAs( "12 mtsr" ).isEqualTo( expected  );
+            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "8 mtsr" ).isEqualTo( expected );
+            assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected );
+            assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected );
 
             System.out.println( "" );
         }
 
-    }
-
-    private static int multiThreadedReader( File basedir, int nThreads )
-        throws InterruptedException
-    {
-        long first = 0;
-        long start = System.nanoTime();
-        long milliStart = System.currentTimeMillis();
-        try
-        {
-            MultiThreadedScannerReader pipelinedDirectoryScanner =
-                new MultiThreadedScannerReader( basedir, null, null, nThreads );
-            pipelinedDirectoryScanner.scanThreaded();
-            ConcurrentLinkedQueue queue = pipelinedDirectoryScanner.getQueue();
-
-            String take;
-            int i = 0;
-            do
-            {
-                take = (String) queue.poll();
-                if ( take != null )
-                {
-                    i++;
-                    if ( i == 1 )
-                    {
-                        first = ( System.nanoTime() - start ) / 1000;
-                    }
-                }
-            }
-            while ( take != MultiThreadedScannerReader.POISON );
-            pipelinedDirectoryScanner.close();
-            return i;
-        }
-        finally
-        {
-            System.out.print(
-                ", MTR, " + nThreads + " T (" + first + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
     }
 
     private static int multiThreadedSingleReceiver( File basedir, int nThreads )
@@ -99,8 +60,8 @@ public class BenchmarkTest
         MyFileReceiver ffr = new MyFileReceiver();
         try
         {
-            MultiThreadedSingleReceiver pipelinedDirectoryScanner =
-                new MultiThreadedSingleReceiver( basedir, null, null, nThreads );
+            MultiReaderSingleWorker pipelinedDirectoryScanner =
+                new MultiReaderSingleWorker( basedir, null, null, nThreads );
 
             pipelinedDirectoryScanner.scanThreaded();
             pipelinedDirectoryScanner.getScanResult( ffr );
@@ -109,7 +70,7 @@ public class BenchmarkTest
         }
         finally
         {
-            System.out.print( ", MTSR(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+            System.out.print( ", MRSW" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
 
@@ -120,7 +81,7 @@ public class BenchmarkTest
         CocurrentFileReceiver ffr = new CocurrentFileReceiver();
         try
         {
-            MultiThreaded scanner = new MultiThreaded( basedir, null, null, ffr, nThreads );
+            MultiReader scanner = new MultiReader( basedir, null, null, ffr, nThreads );
 
             scanner.scanThreaded();
             scanner.getScanResult(  );
@@ -129,7 +90,7 @@ public class BenchmarkTest
         }
         finally
         {
-            System.out.print( ", MT(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+            System.out.print( ", MR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
 
@@ -186,7 +147,7 @@ public class BenchmarkTest
         MyFileReceiver ffr = new MyFileReceiver();
         try
         {
-            ForkedSingleThread fst = new ForkedSingleThread( basedir, null, null );
+            SingleReader fst = new SingleReader( basedir, null, null );
             fst.scanThreaded();
             fst.getScanResult( ffr );
             return ffr.size;
@@ -198,7 +159,7 @@ public class BenchmarkTest
     }
 
 
-    private String[] scanOriginal( File file )
+    private static String[] scanOriginal( File file )
     {
         long start = System.currentTimeMillis();
         try

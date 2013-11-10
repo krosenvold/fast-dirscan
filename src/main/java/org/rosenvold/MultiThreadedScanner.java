@@ -1,11 +1,6 @@
-
 package org.rosenvold;
 
-
-import com.sun.swing.internal.plaf.basic.resources.basic_es;
-import org.rosenvold.reference.MatchPatterns;
 import org.rosenvold.reference.ScannerTools;
-import org.rosenvold.reference.SelectorUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -14,105 +9,47 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Reads with multiple threads
+ * Created by kristian on 10.11.13.
  */
-public class MultiThreadedScannerReader extends ModernBase
+public abstract class MultiThreadedScanner extends ModernBase
 {
 
-    private final ConcurrentLinkedQueue<String> queue;
+    protected final LinkedTransferQueue<String> queue;
 
-    private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
+    protected final AtomicInteger threadsStarted = new AtomicInteger( 1 );
 
-   /**
-     * Whether or not the file system should be treated as a case sensitive
-     * one.
-     */
-    private boolean isCaseSensitive = true;
-
-    private final ExecutorService executor;
+    protected final ExecutorService executor;
 
     public static final String POISON = "*POISON*";
-
 
     /**
      * Sole constructor.
      *
      * @noinspection JavaDoc
      */
-    public MultiThreadedScannerReader( File basedir, String[] includes, String[] excludes, int nThreads )
+    public MultiThreadedScanner( File basedir, String[] includes, String[] excludes, int nThreads )
     {
         super( basedir, includes, excludes);
 
-        queue = new ConcurrentLinkedQueue();
+        queue = new LinkedTransferQueue();
         ScannerTools.verifyBaseDir( basedir );
         executor = Executors.newFixedThreadPool( nThreads );
 
     }
 
 
-    public ConcurrentLinkedQueue<String> getQueue()
-    {
-        return queue;
-    }
-
-
-
-    /**
-     * Scans the base directory for files which match at least one include
-     * pattern and don't match any exclude patterns. If there are selectors
-     * then the files must pass muster there, as well.
-     *
-     * @throws IllegalStateException if the base directory was set
-     *                               incorrectly (i.e. if it is <code>null</code>, doesn't exist,
-     *                               or isn't a directory).
-     */
-    public void scan()
-        throws IllegalStateException, InterruptedException
-    {
-        Runnable scanner = new Runnable()
-        {
-            public void run()
-            {
-                asynchscandir( basedir, "" );
-            }
-        };
-
-        final Thread thread = new Thread( scanner );
-        thread.start();
-        thread.join();
-        while (threadsStarted.get() > 0){
-            Thread.sleep(10);
-        }
-    }
-
-    public void scanThreaded()
-        throws IllegalStateException, InterruptedException
-    {
-        Runnable scanner = new Runnable()
-        {
-            public void run()
-            {
-                asynchscandir( basedir, "" );
-            }
-        };
-
-        final Thread thread = new Thread( scanner );
-        thread.start();
-    }
-
-    private void asynchscandir( File dir, String vpath ){
-        List<String> elementsFound = Collections.synchronizedList(new ArrayList());
+    protected void asynchscandir( File dir, String vpath ){
+        List<String> elementsFound = Collections.synchronizedList( new ArrayList() );
         scandir(  dir, vpath, elementsFound );
         queue.addAll( elementsFound );
         if (threadsStarted.decrementAndGet() == 0){
             queue.add( POISON );
         }
     }
-
-
 
     private void scandir( File dir, String vpath, List elementsFound )
     {
@@ -168,7 +105,7 @@ public class MultiThreadedScannerReader extends ModernBase
 
     }
 
-    class AsynchScanner implements Runnable {
+    protected class AsynchScanner implements Runnable {
         File dir;
         String file;
 
@@ -184,8 +121,43 @@ public class MultiThreadedScannerReader extends ModernBase
         }
     }
 
+    public void scanThreaded()
+        throws IllegalStateException, InterruptedException
+    {
+        Runnable scanner = new Runnable()
+        {
+            public void run()
+            {
+                asynchscandir( basedir, "" );
+            }
+        };
+
+        final Thread thread = new Thread( scanner );
+        thread.start();
+    }
+
     public void close(){
         executor.shutdown();
     }
+
+    public void scan()
+        throws IllegalStateException, InterruptedException
+    {
+        Runnable scanner = new Runnable()
+        {
+            public void run()
+            {
+                asynchscandir( basedir, "" );
+            }
+        };
+
+        final Thread thread = new Thread( scanner );
+        thread.start();
+        thread.join();
+        while (threadsStarted.get() > 0){
+            Thread.sleep(10);
+        }
+    }
+
 
 }
