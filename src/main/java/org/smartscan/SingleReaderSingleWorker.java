@@ -136,7 +136,7 @@ public class SingleReaderSingleWorker
         {
             for ( String newfile : newfiles )
             {
-                String name = vpath + newfile;
+                String currentFullSubPath = vpath + newfile;
                 File file = new File( dir, newfile );
                 if ( file.isFile() )
                 {
@@ -147,16 +147,16 @@ public class SingleReaderSingleWorker
                         sb = queue.nextToDispatch();
                     }
                     sb.setLength( 0 );
-                    sb.append( name );
+                    sb.append( currentFullSubPath );
                     queue.flush();
                 }
                 else if ( file.isDirectory() )
                 {
-                    String[] tokenized = MatchPattern.tokenizePathToString( name, File.separator );
-                    boolean shouldInclude = shouldInclude( name, tokenized );
-                    if ( shouldInclude || couldHoldIncluded( name, tokenized ) )
+                    String[] tokenized = MatchPattern.tokenizePathToString( currentFullSubPath, File.separator );
+                    boolean shouldInclude = shouldInclude( currentFullSubPath, tokenized );
+                    if ( shouldInclude || couldHoldIncluded( currentFullSubPath, tokenized ) )
                     {
-                        scandir( file, name + File.separator );
+                        scandir( file, currentFullSubPath + File.separator );
                     }
                 }
             }

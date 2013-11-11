@@ -69,31 +69,31 @@ public class MultiReaderSingleWorker
         String firstName = null;
         for ( String newfile : newfiles )
         {
-            String name = vpath + newfile;
+            String currentFullSubPath = vpath + newfile;
             File file = new File( dir, newfile );
-            String[] tokenized = MatchPattern.tokenizePathToString( name, File.separator );
-            boolean shouldInclude = shouldInclude( name, tokenized );
+            String[] tokenized = MatchPattern.tokenizePathToString( currentFullSubPath, File.separator );
+            boolean shouldInclude = shouldInclude( currentFullSubPath, tokenized );
 
             if ( file.isFile() )
             {
                 if ( shouldInclude )
                 {
-                    elementsFound.add( name );
+                    elementsFound.add( currentFullSubPath );
                 }
             }
             else if ( file.isDirectory() )
             {
-                if ( shouldInclude || couldHoldIncluded( name, tokenized ) )
+                if ( shouldInclude || couldHoldIncluded( currentFullSubPath, tokenized ) )
 
                 {
                     if ( firstDir == null )
                     {
                         firstDir = file;
-                        firstName = name;
+                        firstName = currentFullSubPath;
                     }
                     else
                     {
-                        final Runnable target = new AsynchScanner( file, name + File.separator );
+                        final Runnable target = new AsynchScanner( file, currentFullSubPath + File.separator );
                         executor.submit( target );
                         threadsStarted.incrementAndGet();
                     }

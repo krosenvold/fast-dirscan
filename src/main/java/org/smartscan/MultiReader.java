@@ -47,36 +47,6 @@ public class MultiReader
     }
 
 
-    /**
-     * Scans the base directory for files which match at least one include
-     * pattern and don't match any exclude patterns. If there are selectors
-     * then the files must pass muster there, as well.
-     *
-     * @throws IllegalStateException if the base directory was set
-     *                               incorrectly (i.e. if it is <code>null</code>, doesn't exist,
-     *                               or isn't a directory).
-     */
-    public void scan()
-        throws IllegalStateException, InterruptedException
-    {
-        Runnable scanner = new Runnable()
-        {
-            public void run()
-            {
-                asynchscandir( basedir, "" );
-            }
-        };
-
-        final Thread thread = new Thread( scanner );
-        thread.start();
-        thread.join();
-        while ( threadsStarted.get() > 0 )
-        {
-            doSleep();
-        }
-    }
-
-
     public void scanThreaded()
         throws IllegalStateException, InterruptedException
     {
@@ -87,7 +57,6 @@ public class MultiReader
                 asynchscandir( basedir, "" );
             }
         };
-
         final Thread thread = new Thread( scanner );
         thread.start();
     }
@@ -112,29 +81,29 @@ public class MultiReader
         String firstName = null;
         for ( String newfile : newfiles )
         {
-            String name = vpath + newfile;
+            String currentFullSubPath = vpath + newfile;
             File file = new File( dir, newfile );
-            String[] tokenized = MatchPattern.tokenizePathToString( name, File.separator );
-            boolean shouldInclude = shouldInclude( name, tokenized );
+            String[] tokenized = MatchPattern.tokenizePathToString( currentFullSubPath, File.separator );
+            boolean shouldInclude = shouldInclude( currentFullSubPath, tokenized );
             if ( file.isFile() )
             {
                 if ( shouldInclude )
                 {
-                    fastFileReceiver.accept( new FastFile( name ) );
+                    fastFileReceiver.accept( new FastFile( currentFullSubPath ) );
                 }
             }
             else if ( file.isDirectory() )
             {
-                if ( shouldInclude || couldHoldIncluded( name, tokenized ) )
+                if ( shouldInclude || couldHoldIncluded( currentFullSubPath, tokenized ) )
                 {
                     if ( firstDir == null )
                     {
                         firstDir = file;
-                        firstName = name;
+                        firstName = currentFullSubPath;
                     }
                     else
                     {
-                        final Runnable target = new AsynchScanner( file, name + File.separator );
+                        final Runnable target = new AsynchScanner( file, currentFullSubPath + File.separator );
                         executor.submit( target );
                         threadsStarted.incrementAndGet();
                     }
