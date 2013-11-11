@@ -46,11 +46,29 @@ public class BenchmarkTest
         {
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
             assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
+            assertThat( singleReaderSingleWorker2( file ) ).as( "srsw" ).isEqualTo( expected );
             assertThat( multiThreadedSingleReceiver( file, 12 ) ).describedAs( "12 mtsr" ).isEqualTo( expected  );
             assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "8 mtsr" ).isEqualTo( expected );
             assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected );
             assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected );
 
+            System.out.println( "" );
+        }
+
+    }
+
+    @Test
+    public void srswx10()
+        throws Exception
+    {
+        assertThat( 1 ).isEqualTo( 1 );
+        final File file = new File( System.getProperty( "user.home" ), "fastdirscan-testdata" );
+        final int expected = singleReaderSingleWorker( file );
+        System.out.println( "Warmup complete" );
+        for ( int i = 0; i < 10; i++ )
+        {
+            assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
+            assertThat( singleReaderSingleWorker2( file ) ).as( "srsw" ).isEqualTo( expected );
             System.out.println( "" );
         }
 
@@ -136,6 +154,23 @@ public class BenchmarkTest
         }
     }
 
+    private static int singleReaderSingleWorker2( File basedir )
+        throws InterruptedException
+    {
+        long milliStart = System.currentTimeMillis();
+        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+        try
+        {
+            SingleReaderSingleWorker2 fst = new SingleReaderSingleWorker2( basedir, null, null );
+            fst.scanThreaded();
+            fst.getScanResult( ffr );
+            return ffr.recvd.get();
+        }
+        finally
+        {
+            System.out.print( ", SRSW2(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+        }
+    }
 
     private static String[] scanOriginal( File file )
     {

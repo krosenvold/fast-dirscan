@@ -57,8 +57,7 @@ public class MultiReader
                 asynchscandir( basedir, "" );
             }
         };
-        final Thread thread = new Thread( scanner );
-        thread.start();
+        executor.submit( scanner );
     }
 
     private void asynchscandir( File dir, String vpath )

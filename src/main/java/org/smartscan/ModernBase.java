@@ -41,11 +41,11 @@ public class ModernBase
         return excludesPatterns.matches( name, isCaseSensitive );
     }
 
-    protected void doSleep()
+    protected void doSleep( int millis )
     {
         try
         {
-            Thread.sleep( 10 );
+            Thread.sleep( millis );
         }
         catch ( InterruptedException e )
         {

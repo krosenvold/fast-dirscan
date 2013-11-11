@@ -9,12 +9,13 @@ import org.smartscan.reference.MatchPattern;
 import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Reads with multiple threads
  */
-public class SingleReaderSingleWorker
+public class SingleReaderSingleWorker2
     extends ModernBase
 {
     final BatchingQueue<StringBuilder> queue = new AtomicQueue<StringBuilder>( 2048, new Builder<StringBuilder>()
@@ -34,7 +35,7 @@ public class SingleReaderSingleWorker
      *
      * @noinspection JavaDoc
      */
-    public SingleReaderSingleWorker( File basedir, String[] includes, String[] excludes )
+    public SingleReaderSingleWorker2( File basedir, String[] includes, String[] excludes )
     {
         super( basedir, includes, excludes );
         ScannerTools.verifyBaseDir( basedir );
@@ -132,18 +133,23 @@ public class SingleReaderSingleWorker
     {
         String[] newfiles = dir.list();
 
+        scanDirInner( vpath, new String[]{}, newfiles );
+    }
+
+    private void scanDirInner( String vpath, String[] tokenizedVpath, String[] newfiles )
+    {
         if ( newfiles != null )
         {
             for ( String newfile : newfiles )
             {
                 String currentFullSubPath = vpath + newfile;
-                File file = new File( dir, newfile );
+                File file = new File( basedir, currentFullSubPath );
                 if ( file.isFile() )
                 {
                     StringBuilder sb = queue.nextToDispatch();
                     while ( sb == null )
                     {
-                        doSleep( 10 );
+                        doSleep( 1 );
                         sb = queue.nextToDispatch();
                     }
                     sb.setLength( 0 );
@@ -152,11 +158,12 @@ public class SingleReaderSingleWorker
                 }
                 else if ( file.isDirectory() )
                 {
-                    String[] tokenized = MatchPattern.tokenizePathToString( currentFullSubPath, File.separator );
-                    boolean shouldInclude = shouldInclude( currentFullSubPath, tokenized );
-                    if ( shouldInclude || couldHoldIncluded( currentFullSubPath, tokenized ) )
+                    String[] newTk = Arrays.copyOf(tokenizedVpath, tokenizedVpath.length + 1);
+                    newTk[ tokenizedVpath.length] = newfile;
+                    boolean shouldInclude = shouldInclude( currentFullSubPath, newTk );
+                    if ( shouldInclude || couldHoldIncluded( currentFullSubPath, newTk ) )
                     {
-                        scandir( file, currentFullSubPath + File.separator );
+                        scanDirInner( currentFullSubPath + File.separator, newTk, file.list() );
                     }
                 }
             }

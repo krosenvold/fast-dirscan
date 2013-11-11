@@ -14,9 +14,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedTransferQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Created by kristian on 10.11.13.
- */
 public class MultiReaderSingleWorker
     extends ModernBase
 {
@@ -104,7 +101,6 @@ public class MultiReaderSingleWorker
         {
             scandir( firstDir, firstName + File.separator, elementsFound );
         }
-
     }
 
     protected class AsynchScanner
