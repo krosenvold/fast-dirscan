@@ -30,6 +30,8 @@ import java.util.List;
  */
 public class MatchPatterns
 {
+    private static final char[] NOTHING = new char[]{ };
+
     private final MatchPattern[] patterns;
 
     private MatchPatterns( MatchPattern[] patterns )
@@ -82,7 +84,8 @@ public class MatchPatterns
     {
         char[][] tokenizedNameChar = new char[tokenizedName.length][];
         for(int i = 0;  i < tokenizedName.length; i++){
-            tokenizedNameChar[i] = tokenizedName[i].toCharArray();
+            String s = tokenizedName[i];
+            tokenizedNameChar[i] = s != null ? s.toCharArray() : NOTHING;
         }
         return tokenizedNameChar;
     }
@@ -100,6 +103,18 @@ public class MatchPatterns
     }
 
     public boolean matchesPatternStart( String name, String[] nameTokenized, boolean isCaseSensitive )
+    {
+        for ( MatchPattern includesPattern : patterns )
+        {
+            if ( includesPattern.matchPatternStart( name, nameTokenized, isCaseSensitive ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean matchesPatternStart( String name, char[][] nameTokenized, boolean isCaseSensitive )
     {
         for ( MatchPattern includesPattern : patterns )
         {

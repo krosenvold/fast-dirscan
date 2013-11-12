@@ -138,7 +138,18 @@ public final class SelectorUtils
             return false;
         }
 
-        return matchAntPathPatternStart( pattern.getTokenizedPathString(), str, strDirs, separator, isCaseSensitive );
+        return matchAntPathPatternStart( pattern.getTokenizedPathString(), strDirs, isCaseSensitive );
+    }
+
+    static boolean matchAntPathPatternStart( MatchPattern pattern, String str, char[][] strDirs, String separator,
+                                             boolean isCaseSensitive )
+    {
+        if ( separatorPatternStartSlashMismatch( pattern, str, separator ) )
+        {
+            return false;
+        }
+
+        return matchAntPathPatternStart( pattern.getTokenizedPathString(), strDirs, isCaseSensitive );
     }
 
     static boolean matchAntPathPatternStart( String pattern, String str, String separator, boolean isCaseSensitive )
@@ -175,10 +186,10 @@ public final class SelectorUtils
     {
         String[] strDirs = tokenizePathToString( str, separator );
 
-        return matchAntPathPatternStart( patDirs, str, strDirs, separator, isCaseSensitive );
+        return matchAntPathPatternStart( patDirs, strDirs, isCaseSensitive );
     }
 
-    static boolean matchAntPathPatternStart( String[] patDirs, String str, String[] strDirs, String separator, boolean isCaseSensitive )
+    static boolean matchAntPathPatternStart( String[] patDirs, String[] strDirs, boolean isCaseSensitive )
     {
         int patIdxStart = 0;
         int patIdxEnd = patDirs.length - 1;
@@ -194,6 +205,32 @@ public final class SelectorUtils
                 break;
             }
             if ( !match( patDir, strDirs[strIdxStart], isCaseSensitive ) )
+            {
+                return false;
+            }
+            patIdxStart++;
+            strIdxStart++;
+        }
+
+        return strIdxStart > strIdxEnd || patIdxStart <= patIdxEnd;
+    }
+    static boolean matchAntPathPatternStart( String[] patDirs, char[][] strDirs, boolean isCaseSensitive )
+    {
+        int patIdxStart = 0;
+        int patIdxEnd = patDirs.length - 1;
+        int strIdxStart = 0;
+        int strIdxEnd = strDirs.length - 1;
+
+        // up to first '**'
+        while ( patIdxStart <= patIdxEnd && strIdxStart <= strIdxEnd )
+        {
+            String patDir = patDirs[patIdxStart];
+            if ( patDir.equals( "**" ) )
+            {
+                break;
+            }
+            // Todo: Not good
+            if ( !match( patDir.toCharArray(), strDirs[strIdxStart], isCaseSensitive ) )
             {
                 return false;
             }

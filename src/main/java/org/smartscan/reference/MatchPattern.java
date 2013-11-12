@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
+import java.util.regex.Pattern;
 
 /**
  * Describes a match target for SelectorUtils.
@@ -84,8 +85,7 @@ public class MatchPattern
         }
         else
         {
-            return SelectorUtils.matchAntPathPattern( getTokenizedPathChars(), strDirs,
-                                                                               isCaseSensitive );
+            return SelectorUtils.matchAntPathPattern( tokenizedChar, strDirs, isCaseSensitive );
         }
     }
 
@@ -108,6 +108,24 @@ public class MatchPattern
     }
 
     public boolean matchPatternStart( String str, String[] strDirs, boolean isCaseSensitive )
+    {
+        if ( regexPattern != null )
+        {
+            // FIXME: ICK! But we can't do partial matches for regex, so we have to reserve judgement until we have
+            // a file to deal with, or we can definitely say this is an exclusion...
+            return true;
+        }
+        else
+        {
+            String altStr = source.replace( '\\', '/' );
+
+            return SelectorUtils.matchAntPathPatternStart( this, str, strDirs, File.separator,
+                                                           isCaseSensitive )
+                || SelectorUtils.matchAntPathPatternStart( this, altStr, strDirs, "/", isCaseSensitive );
+        }
+    }
+
+    public boolean matchPatternStart( String str, char[][] strDirs, boolean isCaseSensitive )
     {
         if ( regexPattern != null )
         {
@@ -152,6 +170,15 @@ public class MatchPattern
     {
         List<String> ret = tokenizedArrayList( path, separator );
         return ret.toArray( new String[ret.size() + 1] );
+    }
+    public static char[][] tokenizePathToCharArrayWithOneExtra( String path, String separator )
+    {
+        List<String> ret = tokenizedArrayList( path, separator );
+        char[][] result = new char[ret.size() + 1][];
+        for (int i = 0; i < ret.size(); i++){
+            result[i] = ret.get(i).toCharArray();
+        }
+        return result;
     }
 
     private static List<String> tokenizedArrayList( String path, String separator )

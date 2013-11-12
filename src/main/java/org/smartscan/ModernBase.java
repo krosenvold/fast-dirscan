@@ -37,6 +37,10 @@ public class ModernBase
     {
         return includesPatterns.matchesPatternStart(name, tokenized, isCaseSensitive);
     }
+    protected boolean couldHoldIncluded( String name, char[][] tokenized )
+    {
+        return includesPatterns.matchesPatternStart(name, tokenized, isCaseSensitive);
+    }
 
     protected boolean isExcluded( String name )
     {
@@ -55,12 +59,6 @@ public class ModernBase
         }
     }
 
-
-    public boolean shouldInclude( String name, String[] tokenized ){
-
-        return includesPatterns.matches( name, tokenized, isCaseSensitive )
-            && !excludesPatterns.matches( name, tokenized, isCaseSensitive );
-    }
 
     public boolean shouldInclude( String name, char[][] tokenized ){
 

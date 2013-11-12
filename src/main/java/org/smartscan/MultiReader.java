@@ -86,15 +86,13 @@ public class MultiReader
 
         File firstDir = null;
         String firstName = null;
-        String[] tokenized = MatchPattern.tokenizePathToStringWithOneExtra( vpath, File.separator );
-  //      char[][] dbl = MatchPatterns.toChars( tokenized );
+        char[][] dbl = MatchPattern.tokenizePathToCharArrayWithOneExtra( vpath, File.separator );
         for ( String newfile : newfiles )
         {
             String currentFullSubPath = vpath + newfile;
             File file = new File( dir, newfile );
-            tokenized[tokenized.length - 1] = newfile;
-      //      dbl[tokenized.length -1] = newfile.toCharArray();
-            boolean shouldInclude = shouldInclude( currentFullSubPath, tokenized );
+            dbl[dbl.length -1] = newfile.toCharArray();
+            boolean shouldInclude = shouldInclude( currentFullSubPath, dbl );
             if ( file.isFile() )
             {
                 if ( shouldInclude )
@@ -104,7 +102,7 @@ public class MultiReader
             }
             else if ( file.isDirectory() )
             {
-                if ( shouldInclude || couldHoldIncluded( currentFullSubPath, tokenized ) )
+                if ( shouldInclude || couldHoldIncluded( currentFullSubPath, dbl ) )
                 {
                     if ( firstDir == null )
                     {
