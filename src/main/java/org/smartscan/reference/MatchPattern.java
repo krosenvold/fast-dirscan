@@ -143,13 +143,26 @@ public class MatchPattern
 
     public static String[] tokenizePathToString( String path, String separator )
     {
+        List<String> ret = tokenizedArrayList( path, separator );
+        return ret.toArray( new String[ret.size()] );
+    }
+
+
+    public static String[] tokenizePathToStringWithOneExtra( String path, String separator )
+    {
+        List<String> ret = tokenizedArrayList( path, separator );
+        return ret.toArray( new String[ret.size() + 1] );
+    }
+
+    private static List<String> tokenizedArrayList( String path, String separator )
+    {
         List<String> ret = new ArrayList<String>();
         StringTokenizer st = new StringTokenizer( path, separator );
         while ( st.hasMoreTokens() )
         {
             ret.add( st.nextToken() );
         }
-        return ret.toArray( new String[ret.size()] );
+        return ret;
     }
 
     public static MatchPattern fromString( String source )

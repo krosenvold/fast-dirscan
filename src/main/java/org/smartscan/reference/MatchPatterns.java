@@ -54,10 +54,7 @@ public class MatchPatterns
 
     public boolean matches( String name, String[] tokenizedName, boolean isCaseSensitive )
     {
-        char[][] tokenizedNameChar = new char[tokenizedName.length][];
-        for(int i = 0;  i < tokenizedName.length; i++){
-        tokenizedNameChar[i] = tokenizedName[i].toCharArray();
-        }
+        char[][] tokenizedNameChar = toChars( tokenizedName );
         for ( MatchPattern pattern : patterns )
         {
             if ( pattern.matchPath( name, tokenizedNameChar, isCaseSensitive ) )
@@ -66,6 +63,28 @@ public class MatchPatterns
             }
         }
         return false;
+    }
+
+
+    public boolean matches( String name, char[][] tokenizedNameChar, boolean isCaseSensitive )
+    {
+        for ( MatchPattern pattern : patterns )
+        {
+            if ( pattern.matchPath( name, tokenizedNameChar, isCaseSensitive ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static char[][] toChars( String[] tokenizedName )
+    {
+        char[][] tokenizedNameChar = new char[tokenizedName.length][];
+        for(int i = 0;  i < tokenizedName.length; i++){
+            tokenizedNameChar[i] = tokenizedName[i].toCharArray();
+        }
+        return tokenizedNameChar;
     }
 
     public boolean matchesPatternStart( String name, boolean isCaseSensitive )

@@ -4,6 +4,7 @@ package org.smartscan;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
 import org.smartscan.reference.MatchPattern;
+import org.smartscan.reference.MatchPatterns;
 import org.smartscan.reference.ScannerTools;
 
 import java.io.File;
@@ -85,14 +86,14 @@ public class MultiReader
 
         File firstDir = null;
         String firstName = null;
-       // String[] tokenized = MatchPattern.tokenizePathToString( vpath + "fud", File.separator );
+        String[] tokenized = MatchPattern.tokenizePathToStringWithOneExtra( vpath, File.separator );
+  //      char[][] dbl = MatchPatterns.toChars( tokenized );
         for ( String newfile : newfiles )
         {
             String currentFullSubPath = vpath + newfile;
             File file = new File( dir, newfile );
-            //tokenized[tokenized.length - 1] = newfile;
-            String[] tokenized = MatchPattern.tokenizePathToString( currentFullSubPath, File.separator );
-
+            tokenized[tokenized.length - 1] = newfile;
+      //      dbl[tokenized.length -1] = newfile.toCharArray();
             boolean shouldInclude = shouldInclude( currentFullSubPath, tokenized );
             if ( file.isFile() )
             {

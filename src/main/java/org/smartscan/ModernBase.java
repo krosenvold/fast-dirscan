@@ -62,5 +62,10 @@ public class ModernBase
             && !excludesPatterns.matches( name, tokenized, isCaseSensitive );
     }
 
+    public boolean shouldInclude( String name, char[][] tokenized ){
+
+        return includesPatterns.matches( name, tokenized, isCaseSensitive )
+            && !excludesPatterns.matches( name, tokenized, isCaseSensitive );
+    }
 
 }
