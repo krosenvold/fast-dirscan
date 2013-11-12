@@ -9,6 +9,7 @@ import org.smartscan.reference.ScannerTools;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -23,6 +24,8 @@ public class MultiReader
     private final ExecutorService executor;
 
     private final FastFileReceiver fastFileReceiver;
+
+    public final AtomicBoolean completed = new AtomicBoolean( false );
 
     /**
      * Sole constructor.
@@ -63,7 +66,9 @@ public class MultiReader
     private void asynchscandir( File dir, String vpath )
     {
         scandir( dir, vpath );
-        threadsStarted.decrementAndGet();
+        int i = threadsStarted.decrementAndGet();
+        if ( i == 0) completed.set( true );
+
     }
 
 
@@ -78,12 +83,14 @@ public class MultiReader
 
         File firstDir = null;
         String firstName = null;
-        String[] tokenized = MatchPattern.tokenizePathToString( vpath + "fud", File.separator );
+       // String[] tokenized = MatchPattern.tokenizePathToString( vpath + "fud", File.separator );
         for ( String newfile : newfiles )
         {
             String currentFullSubPath = vpath + newfile;
             File file = new File( dir, newfile );
-            tokenized[tokenized.length - 1] = newfile;
+            //tokenized[tokenized.length - 1] = newfile;
+            String[] tokenized = MatchPattern.tokenizePathToString( currentFullSubPath, File.separator );
+
             boolean shouldInclude = shouldInclude( currentFullSubPath, tokenized );
             if ( file.isFile() )
             {

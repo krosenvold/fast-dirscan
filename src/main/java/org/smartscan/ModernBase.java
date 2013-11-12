@@ -13,6 +13,8 @@ public class ModernBase
 
     protected final MatchPatterns excludesPatterns;
 
+    public static final String POISON = "*POISON*";
+
     /**
      * Whether or not the file system should be treated as a case sensitive
      * one.
@@ -59,4 +61,6 @@ public class ModernBase
         return includesPatterns.matches( name, tokenized, isCaseSensitive )
             && !excludesPatterns.matches( name, tokenized, isCaseSensitive );
     }
+
+
 }

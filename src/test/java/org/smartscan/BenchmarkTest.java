@@ -21,6 +21,7 @@ package org.smartscan;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
@@ -46,11 +47,10 @@ public class BenchmarkTest
         {
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
             assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
-            assertThat( singleReaderSingleWorker2( file ) ).as( "srsw" ).isEqualTo( expected );
             assertThat( multiThreadedSingleReceiver( file, 12 ) ).describedAs( "12 mtsr" ).isEqualTo( expected  );
             assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "8 mtsr" ).isEqualTo( expected );
             assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected );
-            assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected );
+            assertThat( multiThreaded( file, 8 ) ).as( "mr" ).isEqualTo( expected );
 
             System.out.println( "" );
         }
@@ -58,6 +58,7 @@ public class BenchmarkTest
     }
 
     @Test
+    @Ignore
     public void srswx10()
         throws Exception
     {
@@ -68,7 +69,6 @@ public class BenchmarkTest
         for ( int i = 0; i < 10; i++ )
         {
             assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
-            assertThat( singleReaderSingleWorker2( file ) ).as( "srsw" ).isEqualTo( expected );
             System.out.println( "" );
         }
 
@@ -82,8 +82,6 @@ public class BenchmarkTest
         try
         {
             MultiReaderSingleWorker scanner = new MultiReaderSingleWorker( basedir, null, null, nThreads );
-
-            scanner.scanThreaded();
             scanner.getScanResult( ffr );
             scanner.close();
             return ffr.recvd.get();
@@ -91,6 +89,24 @@ public class BenchmarkTest
         finally
         {
             System.out.print( ", MRSW" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+        }
+    }
+
+    private static int multiThreadedDelegateSingleReceiver( File basedir, int nThreads )
+        throws InterruptedException
+    {
+        long milliStart = System.currentTimeMillis();
+        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+        try
+        {
+            MultiReaderSingleWorker scanner = new MultiReaderSingleWorker( basedir, null, null, nThreads );
+            scanner.getScanResult( ffr );
+            scanner.close();
+            return ffr.recvd.get();
+        }
+        finally
+        {
+            System.out.print( ", MRDSW" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
 
@@ -151,24 +167,6 @@ public class BenchmarkTest
         finally
         {
             System.out.print( ", SRSW(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
-    }
-
-    private static int singleReaderSingleWorker2( File basedir )
-        throws InterruptedException
-    {
-        long milliStart = System.currentTimeMillis();
-        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
-        try
-        {
-            SingleReaderSingleWorker2 fst = new SingleReaderSingleWorker2( basedir, null, null );
-            fst.scanThreaded();
-            fst.getScanResult( ffr );
-            return ffr.recvd.get();
-        }
-        finally
-        {
-            System.out.print( ", SRSW2(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
 

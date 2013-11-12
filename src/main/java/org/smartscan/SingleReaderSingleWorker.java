@@ -27,8 +27,6 @@ public class SingleReaderSingleWorker
 
     private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
 
-    public static final String POISON = "*POISON*";
-
     /**
      * Sole constructor.
      *

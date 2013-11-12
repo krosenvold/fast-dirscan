@@ -11,4 +11,9 @@ public class FastFile
     {
         this.fileName = fileName;
     }
+
+    public String getFileName()
+    {
+        return fileName;
+    }
 }
