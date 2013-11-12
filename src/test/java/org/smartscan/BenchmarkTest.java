@@ -120,7 +120,7 @@ public class BenchmarkTest
             MultiReader scanner = new MultiReader( basedir, null, null, ffr, nThreads );
 
             scanner.scanThreaded();
-            scanner.getScanResult(  );
+            scanner.awaitScanResult();
             scanner.close();
             return ffr.recvd.get();
         }

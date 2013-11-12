@@ -9,6 +9,7 @@ import org.smartscan.reference.ScannerTools;
 import java.io.File;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,12 +42,13 @@ public class MultiReader
         this.fastFileReceiver = fastFileReceiver;
     }
 
-    public void getScanResult()
+    public void awaitScanResult()
     {
         while ( threadsStarted.get() > 0 )
-        {
-            ;
-        }
+                  {
+                    ;
+              }
+        executor.shutdown();
     }
 
 
@@ -111,8 +113,8 @@ public class MultiReader
                     else
                     {
                         final Runnable target = new AsynchScanner( file, currentFullSubPath + File.separator );
-                        executor.submit( target );
                         threadsStarted.incrementAndGet();
+                        executor.submit( target );
                     }
                 }
             }
@@ -145,7 +147,7 @@ public class MultiReader
 
     public void close()
     {
-        executor.shutdown();
+       // executor.shutdown();
     }
 
 }
