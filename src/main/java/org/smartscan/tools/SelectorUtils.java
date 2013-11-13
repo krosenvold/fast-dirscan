@@ -453,12 +453,24 @@ public final class SelectorUtils
 
     public static char[][] tokenizePathToCharArray( String path, char separator, int additional )
     {
-        List<char[]> result = new ArrayList<>();
-        for ( int i = 0; i < path.length(); i++ )
+        char[] pathCHar = path.toCharArray();
+        int pathLen = pathCHar.length;
+        int cnt = 0;
+        for ( char aPathCHar : pathCHar )
+        {
+            if ( aPathCHar == separator )
+            {
+                cnt++;
+            }
+        }
+        cnt++;
+        List<char[]> result = new ArrayList<>(cnt);
+
+        for ( int i = 0; i < pathLen; i++ )
         {
             int j = i;
             int len = 0;
-            while ( j < path.length() && path.charAt( j ) != separator )
+            while ( j < pathLen && pathCHar[ j ] != separator )
             {
                 len++;
                 j++;
@@ -468,7 +480,7 @@ public final class SelectorUtils
                 char[] outp = new char[len];
                 for ( int x = 0; x < len; x++ )
                 {
-                    outp[x] = path.charAt( i + x );
+                    outp[x] = pathCHar[ i + x ];
                 }
                 result.add( outp );
                 i += len;

@@ -61,13 +61,12 @@ public class SingleReaderSingleWorker
                         {
                             return;
                         }
-                        if ( isIncluded( name ) )
-                        {
-                            if ( !isExcluded( name ) )
+                        char[][] tokenized = SelectorUtils.tokenizePathToCharArray( name, File.separatorChar, 0 );
+
+                        if (shouldInclude( name, tokenized ))
                             {
                                 fastFileReceiver.accept( new FastFile( name ) );
                             }
-                        }
                     }
                 }
                 queue.donePolling();

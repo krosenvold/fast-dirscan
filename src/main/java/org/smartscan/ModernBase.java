@@ -30,19 +30,9 @@ public class ModernBase
         excludesPatterns = MatchPatterns.from( ScannerTools.getExcludes( excludes ) );
     }
 
-    protected boolean isIncluded( String name )
-    {
-        return includesPatterns.matches( name, isCaseSensitive );
-    }
-
     protected boolean couldHoldIncluded( String name, char[][] tokenized )
     {
         return includesPatterns.matchesPatternStart(name, tokenized, isCaseSensitive);
-    }
-
-    protected boolean isExcluded( String name )
-    {
-        return excludesPatterns.matches( name, isCaseSensitive );
     }
 
     protected static void doSleep( int millis )
@@ -58,9 +48,7 @@ public class ModernBase
         }
     }
 
-
     public boolean shouldInclude( String name, char[][] tokenized ){
-
         return includesPatterns.matches( name, tokenized, isCaseSensitive )
             && !excludesPatterns.matches( name, tokenized, isCaseSensitive );
     }

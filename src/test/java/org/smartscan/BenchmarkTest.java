@@ -64,13 +64,8 @@ public class BenchmarkTest
     {
         assertThat( 1 ).isEqualTo( 1 );
         final File file = new File( System.getProperty( "user.home" ), "fastdirscan-testdata" );
-        final int expected = singleReaderSingleWorker( file );
         System.out.println( "Warmup complete" );
-        for ( int i = 0; i < 10; i++ )
-        {
-            assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
-            System.out.println( "" );
-        }
+        multiThreaded( file, 12 );
 
     }
 

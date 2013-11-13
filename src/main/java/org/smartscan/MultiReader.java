@@ -135,7 +135,7 @@ public class MultiReader
                     }
                     else
                     {
-                        final Runnable target = new AsynchScanner( file, currentFullSubPath + File.separator );
+                        final Runnable target = new AsynchScanner( file, currentFullSubPath + File.separatorChar );
                         threadsStarted.incrementAndGet();
                         executor.submit( target );
                     }
@@ -144,7 +144,7 @@ public class MultiReader
         }
         if ( firstDir != null )
         {
-            scandir( firstDir, firstName + File.separator );
+            scandir( firstDir, firstName + File.separatorChar );
         }
 
     }

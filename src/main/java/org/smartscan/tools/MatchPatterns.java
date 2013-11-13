@@ -49,21 +49,8 @@ public class MatchPatterns
      */
     public boolean matches( String name, boolean isCaseSensitive )
     {
-        String[] tokenized = SelectorUtils.tokenizePathToString( name, File.separator );
+        char[][] tokenized = SelectorUtils.tokenizePathToCharArray( name, File.separatorChar, 0 );
         return matches(  name, tokenized, isCaseSensitive );
-    }
-
-    public boolean matches( String name, String[] tokenizedName, boolean isCaseSensitive )
-    {
-        char[][] tokenizedNameChar = toChars( tokenizedName );
-        for ( MatchPattern pattern : patterns )
-        {
-            if ( pattern.matchPath( name, tokenizedNameChar, isCaseSensitive ) )
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
 
