@@ -70,7 +70,7 @@ public final class SelectorUtils
         while ( patIdxStart <= patIdxEnd && strIdxStart <= strIdxEnd )
         {
             char[] patDir = patDirs[patIdxStart];
-            if ( isDoubleStar( patDir ))
+            if ( isDoubleStar( patDir ) )
             {
                 break;
             }
@@ -240,7 +240,7 @@ public final class SelectorUtils
      * @param str     The string which must be matched against the pattern.
      *                Must not be {@code null}.
      * @return {@code true} if the string matches against the pattern,
-     *         or {@code false} otherwise.
+     * or {@code false} otherwise.
      */
     public static boolean match( String pattern, String str )
     {
@@ -260,13 +260,13 @@ public final class SelectorUtils
      * @param isCaseSensitive Whether or not matching should be performed
      *                        case sensitively.
      * @return {@code true} if the string matches against the pattern,
-     *         or {@code false} otherwise.
+     * or {@code false} otherwise.
      */
     public static boolean match( String pattern, String str, boolean isCaseSensitive )
     {
         char[] patArr = pattern.toCharArray();
         char[] strArr = str.toCharArray();
-        return match( patArr, strArr, isCaseSensitive);
+        return match( patArr, strArr, isCaseSensitive );
     }
 
     public static boolean match( char[] patArr, char[] strArr, boolean isCaseSensitive )
@@ -449,6 +449,32 @@ public final class SelectorUtils
             ret.add( st.nextToken() );
         }
         return ret.toArray( new String[ret.size()] );
+    }
+
+    public static char[][] tokenizePathToCharArray( String path, char separator )
+    {
+        List<char[]> result = new ArrayList<>();
+        for ( int i = 0; i < path.length(); i++ )
+        {
+            int j = i;
+            int len = 0;
+            while ( j < path.length() && path.charAt( j ) != separator )
+            {
+                len++;
+                j++;
+            }
+            if ( len > 0 )
+            {
+                char[] outp = new char[len];
+                for ( int x = 0; x < len; x++ )
+                {
+                    outp[x] = path.charAt( i + x );
+                }
+                result.add( outp );
+                i += len;
+            }
+        }
+        return result.toArray( new char[result.size()][] );
     }
 
 

@@ -157,8 +157,7 @@ public class SingleReaderSingleWorker
                 }
                 else if ( file.isDirectory() )
                 {
-                    String[] tokenized = SelectorUtils.tokenizePathToString( currentFullSubPath, File.separator );
-                    char[][] dbl = MatchPatterns.toChars( tokenized );
+                    char[][] dbl = SelectorUtils.tokenizePathToCharArray( currentFullSubPath, File.separatorChar );
 
                     boolean shouldInclude = shouldInclude( currentFullSubPath, dbl );
                     if ( shouldInclude || couldHoldIncluded( currentFullSubPath, dbl ) )
