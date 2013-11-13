@@ -1,25 +1,30 @@
-package org.smartscan.reference;
+package org.smartscan.tools;
 
-import org.codehaus.plexus.util.*;
+import org.codehaus.plexus.util.StringUtils;
 
 import java.io.File;
 
-/**
- * Created by kristian on 09.11.13.
- */
-public class ScannerTools
+public final class ScannerTools
 {
+
+    public static final String[] NONE = new String[0];
+
+    private ScannerTools()
+    {
+    }
+
     /**
      * Normalizes the pattern, e.g. converts forward and backward slashes to the platform-specific file separator.
      *
-     * @param pattern The pattern to normalize, must not be <code>null</code>.
-     * @return The normalized pattern, never <code>null</code>.
+     * @param pattern The pattern to normalize, must not be {@code null}.
+     * @return The normalized pattern, never {@code null}.
      */
+    @SuppressWarnings( { "HardcodedFileSeparator", "AssignmentToMethodParameter" } )
     public static String normalizePattern( String pattern )
     {
         pattern = pattern.trim();
 
-        if ( pattern.startsWith( org.codehaus.plexus.util.SelectorUtils.REGEX_HANDLER_PREFIX ) )
+        if ( pattern.startsWith( SelectorUtils.REGEX_HANDLER_PREFIX ) )
         {
             if ( File.separatorChar == '\\' )
             {
@@ -43,7 +48,7 @@ public class ScannerTools
         return pattern;
     }
 
-    public static String[] getIncludes( String[] includes )
+    public static String[] getIncludes( String... includes )
     {
         final String[] inc;
         if ( includes == null )
@@ -63,11 +68,11 @@ public class ScannerTools
         }
     }
 
-    public static String[] getExcludes( String[] excludes )
+    public static String[] getExcludes( String... excludes )
     {
         if ( excludes == null )
         {
-            return new String[0];
+            return NONE;
         }
         else
         {
@@ -80,6 +85,7 @@ public class ScannerTools
         }
     }
 
+    @SuppressWarnings( "DuplicateStringLiteralInspection" )
     public static void verifyBaseDir( File basedir )
     {
         if ( basedir == null )

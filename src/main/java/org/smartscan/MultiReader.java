@@ -3,14 +3,15 @@ package org.smartscan;
 
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
-import org.smartscan.reference.MatchPattern;
-import org.smartscan.reference.MatchPatterns;
-import org.smartscan.reference.ScannerTools;
+import org.smartscan.tools.ScannerTools;
+import org.smartscan.tools.SelectorUtils;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -29,6 +30,8 @@ public class MultiReader
 
     public final AtomicBoolean completed = new AtomicBoolean( false );
 
+    private static final String[] NOFILES = new String[0];
+
     /**
      * Sole constructor.
      *
@@ -43,12 +46,35 @@ public class MultiReader
         this.fastFileReceiver = fastFileReceiver;
     }
 
+    public static char[][] tokenizePathToCharArrayWithOneExtra( String path, String separator )
+    {
+        String[] ret = SelectorUtils.tokenizePathToString( path, separator );
+        char[][] result = new char[ret.length + 1][];
+        for ( int i = 0; i < ret.length; i++ )
+        {
+            result[i] = ret[i].toCharArray();
+        }
+        return result;
+    }
+
+    public static List<String> tokenizedArrayList( String path, String separator )
+    {
+        //noinspection CollectionWithoutInitialCapacity
+        List<String> ret = new ArrayList<>();
+        StringTokenizer st = new StringTokenizer( path, separator );
+        while ( st.hasMoreTokens() )
+        {
+            ret.add( st.nextToken() );
+        }
+        return ret;
+    }
+
     public void awaitScanResult()
     {
+        //noinspection StatementWithEmptyBody
         while ( threadsStarted.get() > 0 )
-                  {
-                    ;
-              }
+        {
+        }
         executor.shutdown();
     }
 
@@ -58,6 +84,7 @@ public class MultiReader
     {
         Runnable scanner = new Runnable()
         {
+            @Override
             public void run()
             {
                 asynchscandir( basedir, "" );
@@ -70,7 +97,10 @@ public class MultiReader
     {
         scandir( dir, vpath );
         int i = threadsStarted.decrementAndGet();
-        if ( i == 0) completed.set( true );
+        if ( i == 0 )
+        {
+            completed.set( true );
+        }
 
     }
 
@@ -81,17 +111,17 @@ public class MultiReader
 
         if ( newfiles == null )
         {
-            newfiles = new String[0];
+            newfiles = NOFILES;
         }
 
         File firstDir = null;
         String firstName = null;
-        char[][] dbl = MatchPattern.tokenizePathToCharArrayWithOneExtra( vpath, File.separator );
+        char[][] dbl = tokenizePathToCharArrayWithOneExtra( vpath, File.separator );
         for ( String newfile : newfiles )
         {
             String currentFullSubPath = vpath + newfile;
             File file = new File( dir, newfile );
-            dbl[dbl.length -1] = newfile.toCharArray();
+            dbl[dbl.length - 1] = newfile.toCharArray();
             boolean shouldInclude = shouldInclude( currentFullSubPath, dbl );
             if ( file.isFile() )
             {
@@ -138,6 +168,7 @@ public class MultiReader
             this.file = file;
         }
 
+        @Override
         public void run()
         {
             asynchscandir( dir, file );
@@ -146,7 +177,7 @@ public class MultiReader
 
     public void close()
     {
-       // executor.shutdown();
+        // executor.shutdown();
     }
 
 }

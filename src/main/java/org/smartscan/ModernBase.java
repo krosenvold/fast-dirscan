@@ -1,7 +1,8 @@
 package org.smartscan;
 
-import org.smartscan.reference.MatchPatterns;
-import org.smartscan.reference.ScannerTools;
+
+import org.smartscan.tools.MatchPatterns;
+import org.smartscan.tools.ScannerTools;
 
 import java.io.File;
 
@@ -19,8 +20,9 @@ public class ModernBase
      * Whether or not the file system should be treated as a case sensitive
      * one.
      */
-    private boolean isCaseSensitive = true;
+    private static final boolean isCaseSensitive = true;
 
+    @SuppressWarnings( "MethodCanBeVariableArityMethod" )
     public ModernBase( File basedir, String[] includes, String[] excludes )
     {
         this.basedir = basedir;
@@ -33,10 +35,6 @@ public class ModernBase
         return includesPatterns.matches( name, isCaseSensitive );
     }
 
-    protected boolean couldHoldIncluded( String name, String[] tokenized )
-    {
-        return includesPatterns.matchesPatternStart(name, tokenized, isCaseSensitive);
-    }
     protected boolean couldHoldIncluded( String name, char[][] tokenized )
     {
         return includesPatterns.matchesPatternStart(name, tokenized, isCaseSensitive);
@@ -47,10 +45,11 @@ public class ModernBase
         return excludesPatterns.matches( name, isCaseSensitive );
     }
 
-    protected void doSleep( int millis )
+    protected static void doSleep( int millis )
     {
         try
         {
+            //noinspection ImplicitNumericConversion
             Thread.sleep( millis );
         }
         catch ( InterruptedException e )

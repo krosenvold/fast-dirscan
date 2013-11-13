@@ -21,11 +21,11 @@ package org.smartscan;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
-import org.smartscan.reference.DirectoryScanner;
 
 import static org.fest.assertions.api.Assertions.*;
 

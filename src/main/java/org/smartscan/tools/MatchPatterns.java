@@ -17,11 +17,10 @@
  * under the License.
  */
 
-package org.smartscan.reference;
+package org.smartscan.tools;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+
 
 /**
  * A list of patterns to be matched
@@ -30,11 +29,11 @@ import java.util.List;
  */
 public class MatchPatterns
 {
-    private static final char[] NOTHING = new char[]{ };
+    private static final char[] NOTHING = { };
 
     private final MatchPattern[] patterns;
 
-    private MatchPatterns( MatchPattern[] patterns )
+    private MatchPatterns( MatchPattern... patterns )
     {
         this.patterns = patterns;
     }
@@ -50,7 +49,7 @@ public class MatchPatterns
      */
     public boolean matches( String name, boolean isCaseSensitive )
     {
-        String[] tokenized = MatchPattern.tokenizePathToString( name, File.separator );
+        String[] tokenized = SelectorUtils.tokenizePathToString( name, File.separator );
         return matches(  name, tokenized, isCaseSensitive );
     }
 
@@ -80,7 +79,7 @@ public class MatchPatterns
         return false;
     }
 
-    public static char[][] toChars( String[] tokenizedName )
+    public static char[][] toChars( String... tokenizedName )
     {
         char[][] tokenizedNameChar = new char[tokenizedName.length][];
         for(int i = 0;  i < tokenizedName.length; i++){
@@ -88,30 +87,6 @@ public class MatchPatterns
             tokenizedNameChar[i] = s != null ? s.toCharArray() : NOTHING;
         }
         return tokenizedNameChar;
-    }
-
-    public boolean matchesPatternStart( String name, boolean isCaseSensitive )
-    {
-        for ( MatchPattern includesPattern : patterns )
-        {
-            if ( includesPattern.matchPatternStart( name, isCaseSensitive ) )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean matchesPatternStart( String name, String[] nameTokenized, boolean isCaseSensitive )
-    {
-        for ( MatchPattern includesPattern : patterns )
-        {
-            if ( includesPattern.matchPatternStart( name, nameTokenized, isCaseSensitive ) )
-            {
-                return true;
-            }
-        }
-        return false;
     }
 
     public boolean matchesPatternStart( String name, char[][] nameTokenized, boolean isCaseSensitive )
@@ -135,21 +110,6 @@ public class MatchPatterns
             result[i] = MatchPattern.fromString( sources[i] );
         }
         return new MatchPatterns( result );
-    }
-
-    public static MatchPatterns from( Iterable<String> strings )
-    {
-        return new MatchPatterns( getMatchPatterns( strings ) );
-    }
-
-    private static MatchPattern[] getMatchPatterns( Iterable<String> items )
-    {
-        List<MatchPattern> result = new ArrayList<MatchPattern>();
-        for ( String string : items )
-        {
-            result.add( MatchPattern.fromString( string ) );
-        }
-        return result.toArray( new MatchPattern[result.size()] );
     }
 
 }

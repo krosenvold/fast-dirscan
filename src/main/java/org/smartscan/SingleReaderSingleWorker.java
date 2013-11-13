@@ -5,9 +5,9 @@ import org.mentaqueue.BatchingQueue;
 import org.mentaqueue.util.Builder;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
-import org.smartscan.reference.MatchPattern;
-import org.smartscan.reference.MatchPatterns;
-import org.smartscan.reference.ScannerTools;
+import org.smartscan.tools.MatchPatterns;
+import org.smartscan.tools.ScannerTools;
+import org.smartscan.tools.SelectorUtils;
 
 import java.io.File;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -18,8 +18,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class SingleReaderSingleWorker
     extends ModernBase
 {
-    final BatchingQueue<StringBuilder> queue = new AtomicQueue<StringBuilder>( 2048, new Builder<StringBuilder>()
+    final BatchingQueue<StringBuilder> queue = new AtomicQueue<>( 2048, new Builder<StringBuilder>()
     {
+        @Override
         public StringBuilder newInstance()
         {
             return new StringBuilder( 1024 );
@@ -31,7 +32,7 @@ public class SingleReaderSingleWorker
     /**
      * Sole constructor.
      *
-     * @noinspection JavaDoc
+     * @noinspection JavaDoc, MethodCanBeVariableArityMethod
      */
     public SingleReaderSingleWorker( File basedir, String[] includes, String[] excludes )
     {
@@ -40,12 +41,14 @@ public class SingleReaderSingleWorker
     }
 
 
+    @SuppressWarnings( "OverlyNestedMethod" )
     void getScanResult( FastFileReceiver fastFileReceiver )
     {
         StringBuilder item;
         while ( true )
         {
-            long avail = queue.availableToPoll();
+            @SuppressWarnings( "NumericCastThatLosesPrecision" )
+            int avail = (int) queue.availableToPoll();
             if ( avail > 0 )
             {
                 for ( int i = 0; i < avail; i++ )
@@ -78,7 +81,7 @@ public class SingleReaderSingleWorker
      * then the files must pass muster there, as well.
      *
      * @throws IllegalStateException if the base directory was set
-     *                               incorrectly (i.e. if it is <code>null</code>, doesn't exist,
+     *                               incorrectly (i.e. if it is {@code null}, doesn't exist,
      *                               or isn't a directory).
      */
     public void scan()
@@ -86,6 +89,7 @@ public class SingleReaderSingleWorker
     {
         Runnable scanner = new Runnable()
         {
+            @Override
             public void run()
             {
                 scandir( basedir, "" );
@@ -95,9 +99,10 @@ public class SingleReaderSingleWorker
         final Thread thread = new Thread( scanner );
         thread.start();
         thread.join();
+
         while ( threadsStarted.get() > 0 )
         {
-            Thread.sleep( 10 );
+            doSleep( 1 );
         }
     }
 
@@ -106,6 +111,7 @@ public class SingleReaderSingleWorker
     {
         Runnable scanner = new Runnable()
         {
+            @Override
             public void run()
             {
                 scandir( basedir, "" );
@@ -151,11 +157,11 @@ public class SingleReaderSingleWorker
                 }
                 else if ( file.isDirectory() )
                 {
-                    String[] tokenized = MatchPattern.tokenizePathToString( currentFullSubPath, File.separator );
+                    String[] tokenized = SelectorUtils.tokenizePathToString( currentFullSubPath, File.separator );
                     char[][] dbl = MatchPatterns.toChars( tokenized );
 
                     boolean shouldInclude = shouldInclude( currentFullSubPath, dbl );
-                    if ( shouldInclude || couldHoldIncluded( currentFullSubPath, tokenized ) )
+                    if ( shouldInclude || couldHoldIncluded( currentFullSubPath, dbl ) )
                     {
                         scandir( file, currentFullSubPath + File.separator );
                     }
