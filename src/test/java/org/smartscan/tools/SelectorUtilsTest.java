@@ -16,7 +16,7 @@ public class SelectorUtilsTest
         String[] chars2 = SelectorUtils.tokenizePathToString( "", "x" );
         assertEquals( 0, chars2.length );
 
-        char[][] chars = SelectorUtils.tokenizePathToCharArray( "", 'x' );
+        char[][] chars = SelectorUtils.tokenizePathToCharArray( "", 'x', 0 );
         assertEquals( 0, chars.length);
     }
 
@@ -25,7 +25,7 @@ public class SelectorUtilsTest
     public void testTokenizeCharArray()
         throws Exception
     {
-        char[][] chars = SelectorUtils.tokenizePathToCharArray( "ABCxDEFxEEEx", 'x' );
+        char[][] chars = SelectorUtils.tokenizePathToCharArray( "ABCxDEFxEEEx", 'x', 0 );
         assertEquals( "ABC", new String( chars[0] ) );
         assertEquals("DEF", new String(chars[1]));
         assertEquals("EEE", new String(chars[2]));
@@ -35,7 +35,7 @@ public class SelectorUtilsTest
     public void testTokenizeCharArrayNoEndToken()
         throws Exception
     {
-        char[][] chars = SelectorUtils.tokenizePathToCharArray( "ABCxDEFxEER", 'x' );
+        char[][] chars = SelectorUtils.tokenizePathToCharArray( "ABCxDEFxEER", 'x', 0 );
         assertEquals( "ABC", new String( chars[0] ) );
         assertEquals("DEF", new String(chars[1]));
         assertEquals("EER", new String(chars[2]));
@@ -45,7 +45,7 @@ public class SelectorUtilsTest
     public void testTokenizeltiDelim()
         throws Exception
     {
-        char[][] chars = SelectorUtils.tokenizePathToCharArray( "xxABCxDEFxEER", 'x' );
+        char[][] chars = SelectorUtils.tokenizePathToCharArray( "xxABCxDEFxEER", 'x', 0 );
         assertEquals( "ABC", new String( chars[0] ) );
         assertEquals("DEF", new String(chars[1]));
         assertEquals("EER", new String(chars[2]));

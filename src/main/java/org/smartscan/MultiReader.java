@@ -48,10 +48,7 @@ public class MultiReader
 
     public static char[][] tokenizePathToCharArrayWithOneExtra( String path, String separator )
     {
-        char[][] ret =  SelectorUtils.tokenizePathToCharArray( path, separator.charAt( 0 ) );
-        char[][] result = new char[ret.length + 1][];
-        System.arraycopy( ret, 0, result, 0, ret.length );
-        return result;
+        return SelectorUtils.tokenizePathToCharArray( path, separator.charAt( 0 ), 1 );
     }
 
     public static List<String> tokenizedArrayList( String path, String separator )

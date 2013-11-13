@@ -451,7 +451,7 @@ public final class SelectorUtils
         return ret.toArray( new String[ret.size()] );
     }
 
-    public static char[][] tokenizePathToCharArray( String path, char separator )
+    public static char[][] tokenizePathToCharArray( String path, char separator, int additional )
     {
         List<char[]> result = new ArrayList<>();
         for ( int i = 0; i < path.length(); i++ )
@@ -474,7 +474,7 @@ public final class SelectorUtils
                 i += len;
             }
         }
-        return result.toArray( new char[result.size()][] );
+        return result.toArray( new char[result.size() +additional][] );
     }
 
 
