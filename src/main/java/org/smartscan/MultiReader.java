@@ -177,7 +177,7 @@ public class MultiReader
 
     public void close()
     {
-        // executor.shutdown();
+        executor.shutdown();
     }
 
 }
