@@ -478,10 +478,7 @@ public final class SelectorUtils
             if ( len > 0 )
             {
                 char[] outp = new char[len];
-                for ( int x = 0; x < len; x++ )
-                {
-                    outp[x] = pathCHar[ i + x ];
-                }
+                System.arraycopy( pathCHar, i, outp, 0, len );
                 result.add( outp );
                 i += len;
             }
