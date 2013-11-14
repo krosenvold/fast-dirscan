@@ -67,7 +67,7 @@ public class MatchPatterns
         }
         if ( regexPatterns.length > 0 )
         {
-            StringBuilder vpathB = new StringBuilder( );
+            StringBuilder vpathB = new StringBuilder( sizeOf( tokenizedVpath, 1 ) );
             for ( char[] chars : tokenizedVpath )
             {
                 vpathB.append( chars );
@@ -83,6 +83,17 @@ public class MatchPatterns
             }
         }
         return false;
+    }
+
+    private static int sizeOf( char[][] array, int padding )
+    {
+        int result = 0;
+        for ( char[] chars : array )
+        {
+            result += chars.length;
+            result += padding;
+        }
+        return result;
     }
 
     public boolean matchesPatternStart( char[][] tokenizedVpath, boolean isCaseSensitive )

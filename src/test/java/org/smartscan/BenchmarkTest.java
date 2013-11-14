@@ -87,24 +87,6 @@ public class BenchmarkTest
         }
     }
 
-    private static int multiThreadedDelegateSingleReceiver( File basedir, int nThreads )
-        throws InterruptedException
-    {
-        long milliStart = System.currentTimeMillis();
-        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
-        try
-        {
-            MultiReaderSingleWorker scanner = new MultiReaderSingleWorker( basedir, null, null, nThreads );
-            scanner.getScanResult( ffr );
-            scanner.close();
-            return ffr.recvd.get();
-        }
-        finally
-        {
-            System.out.print( ", MRDSW" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
-    }
-
     private static int multiThreaded( File basedir, int nThreads )
         throws InterruptedException
     {

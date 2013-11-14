@@ -4,10 +4,9 @@ package org.smartscan;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
 import org.smartscan.tools.ScannerTools;
-import org.smartscan.tools.SelectorUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MultiReader
     extends ModernBase
 {
+
+    public static final char[][] NO_FILES_VPATH_ = new char[0][];
 
     private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
 
@@ -44,23 +45,18 @@ public class MultiReader
         this.fastFileReceiver = fastFileReceiver;
     }
 
-    public static char[][] tokenizePathToCharArrayWithOneExtra( String path, char separator )
-    {
-        return SelectorUtils.tokenizePathToCharArray( path, separator, 1 );
-    }
-
-    public static char[][] copyWithOneExtra( char[][] original)
+    public static char[][] copyWithOneExtra( char[][] original )
     {
         int length = original.length;
-        char[][] result = new char[ length + 1][];
+        char[][] result = new char[length + 1][];
         System.arraycopy( original, 0, result, 0, length );
         return result;
     }
 
-    public static char[][] copy( char[][] original)
+    public static char[][] copy( char[][] original )
     {
         int length = original.length;
-        char[][] result = new char[ length][];
+        char[][] result = new char[length][];
         System.arraycopy( original, 0, result, 0, length );
         return result;
     }
@@ -83,7 +79,7 @@ public class MultiReader
             @Override
             public void run()
             {
-                asynchscandir( basedir, new char[0][] );
+                asynchscandir( basedir, NO_FILES_VPATH_ );
             }
         };
         executor.submit( scanner );
@@ -101,55 +97,58 @@ public class MultiReader
     }
 
 
+    @SuppressWarnings( "AssignmentToMethodParameter" )
     private void scandir( File parent, char[][] unmodifyableparentvpath )
     {
-        String[] newfiles = parent.list();
-
-        if ( newfiles == null )
+        @Nullable File firstDir;
+        @Nullable char[][] firstVpath;
+        do
         {
-            newfiles = NOFILES;
-        }
+            firstDir = null;
+            firstVpath = null;
 
-        File firstDir = null;
-        char[][] firstVpath = null;
+            File[] newfiles = parent.listFiles();
 
-        char[][] mutablevpath = copyWithOneExtra( unmodifyableparentvpath );
-        for ( String newfile : newfiles )
-        {
-            File file = new File( parent, newfile );
-            mutablevpath[mutablevpath.length - 1] = newfile.toCharArray();
-            boolean shouldInclude = shouldInclude( mutablevpath );
-            if ( file.isFile() )
+            if ( newfiles != null )
             {
-                if ( shouldInclude )
+
+                char[][] mutablevpath = copyWithOneExtra( unmodifyableparentvpath );
+                for ( File file : newfiles )
                 {
-                    fastFileReceiver.accept( new FastFile( file, unmodifyableparentvpath ) );
+                    //File file = new File( parent, newfile );
+                    mutablevpath[mutablevpath.length - 1] = file.getName().toCharArray();
+                    boolean shouldInclude = shouldInclude( mutablevpath );
+                    if ( file.isFile() )
+                    {
+                        if ( shouldInclude )
+                        {
+                            fastFileReceiver.accept( new FastFile( file, unmodifyableparentvpath ) );
+                        }
+                    }
+                    else if ( file.isDirectory() )
+                    {
+                        if ( shouldInclude || couldHoldIncluded( mutablevpath ) )
+                        {
+                            if ( firstDir == null )
+                            {
+                                firstDir = file;
+                                firstVpath = copy( mutablevpath );
+                            }
+                            else
+                            {
+
+                                final Runnable target = new AsynchScanner( file, copy( mutablevpath ) );
+                                threadsStarted.incrementAndGet();
+                                executor.submit( target );
+                            }
+                        }
+                    }
                 }
             }
-            else if ( file.isDirectory() )
-            {
-                if ( shouldInclude || couldHoldIncluded( mutablevpath ) )
-                {
-                    if ( firstDir == null )
-                    {
-                        firstDir = file;
-                        firstVpath = copy(mutablevpath);
-                    }
-                    else
-                    {
-
-                        final Runnable target = new AsynchScanner( file, copy(mutablevpath) );
-                        threadsStarted.incrementAndGet();
-                        executor.submit( target );
-                    }
-                }
-            }
+            parent = firstDir;
+            unmodifyableparentvpath = firstVpath;
         }
-        if ( firstDir != null )
-        {
-            scandir( firstDir, firstVpath);
-        }
-
+        while ( firstDir != null );
     }
 
     class AsynchScanner
@@ -157,21 +156,24 @@ public class MultiReader
     {
         File dir;
 
-        char[][] file;
+        char[][] vpath;
 
         AsynchScanner( File dir, char[][] vpath )
         {
             this.dir = dir;
-            this.file = vpath;
+            this.vpath = vpath;
         }
 
         @Override
         public void run()
         {
-            try {
+            try
+            {
 
-            asynchscandir( dir, file );
-            } catch (Throwable e){
+                asynchscandir( dir, vpath );
+            }
+            catch ( Throwable e )
+            {
                 e.printStackTrace();
             }
         }
