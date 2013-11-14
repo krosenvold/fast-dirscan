@@ -7,6 +7,9 @@ import org.smartscan.tools.ScannerTools;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -119,15 +122,24 @@ public class MultiReader
                 for ( File file : newfiles )
                 {
                     mutablevpath[mutablevpath.length - 1] = file.getName().toCharArray();
+                    BasicFileAttributes basicFileAttributes = null;
+                    try
+                    {
+                        basicFileAttributes = Files.readAttributes( file.toPath(), BasicFileAttributes.class );
+                    }
+                    catch ( IOException e )
+                    {
+                        throw new RuntimeException( e );
+                    }
                     boolean shouldInclude = shouldInclude( mutablevpath );
-                    if ( file.isFile() )
+                    if ( basicFileAttributes.isRegularFile() )
                     {
                         if ( shouldInclude )
                         {
                             fastFileReceiver.accept( new FastFile( file, unmodifyableparentvpath ) );
                         }
                     }
-                    else if ( file.isDirectory() )
+                    else if ( basicFileAttributes.isDirectory() )
                     {
                         if ( shouldInclude || couldHoldIncluded( mutablevpath ) )
                         {
