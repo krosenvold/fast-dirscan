@@ -115,7 +115,6 @@ public class MultiReader
                 char[][] mutablevpath = copyWithOneExtra( unmodifyableparentvpath );
                 for ( File file : newfiles )
                 {
-                    //File file = new File( parent, newfile );
                     mutablevpath[mutablevpath.length - 1] = file.getName().toCharArray();
                     boolean shouldInclude = shouldInclude( mutablevpath );
                     if ( file.isFile() )
@@ -150,6 +149,7 @@ public class MultiReader
         }
         while ( firstDir != null );
     }
+
 
     class AsynchScanner
         implements Runnable
