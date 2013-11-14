@@ -7,6 +7,7 @@ import org.smartscan.tools.ScannerTools;
 import org.smartscan.tools.SelectorUtils;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -48,6 +49,22 @@ public class MultiReader
         return SelectorUtils.tokenizePathToCharArray( path, separator, 1 );
     }
 
+    public static char[][] copyWithOneExtra( char[][] original)
+    {
+        int length = original.length;
+        char[][] result = new char[ length + 1][];
+        System.arraycopy( original, 0, result, 0, length );
+        return result;
+    }
+
+    public static char[][] copy( char[][] original)
+    {
+        int length = original.length;
+        char[][] result = new char[ length][];
+        System.arraycopy( original, 0, result, 0, length );
+        return result;
+    }
+
     public void awaitScanResult()
     {
         //noinspection StatementWithEmptyBody
@@ -66,13 +83,13 @@ public class MultiReader
             @Override
             public void run()
             {
-                asynchscandir( basedir, "" );
+                asynchscandir( basedir, new char[0][] );
             }
         };
         executor.submit( scanner );
     }
 
-    private void asynchscandir( File dir, String vpath )
+    private void asynchscandir( File dir, char[][] vpath )
     {
         scandir( dir, vpath );
         int i = threadsStarted.decrementAndGet();
@@ -84,9 +101,9 @@ public class MultiReader
     }
 
 
-    private void scandir( File dir, String parentvpath )
+    private void scandir( File parent, char[][] unmodifyableparentvpath )
     {
-        String[] newfiles = dir.list();
+        String[] newfiles = parent.list();
 
         if ( newfiles == null )
         {
@@ -94,19 +111,19 @@ public class MultiReader
         }
 
         File firstDir = null;
-        String firstName = null;
-        char[][] mutablevpath = tokenizePathToCharArrayWithOneExtra( parentvpath, File.separatorChar );
+        char[][] firstVpath = null;
+
+        char[][] mutablevpath = copyWithOneExtra( unmodifyableparentvpath );
         for ( String newfile : newfiles )
         {
-            File file = new File( dir, newfile );
-            String vpath = parentvpath + newfile;
+            File file = new File( parent, newfile );
             mutablevpath[mutablevpath.length - 1] = newfile.toCharArray();
             boolean shouldInclude = shouldInclude( mutablevpath );
             if ( file.isFile() )
             {
                 if ( shouldInclude )
                 {
-                    fastFileReceiver.accept( new FastFile( file, mutablevpath ) ); // Todo: Look at mutablitiy
+                    fastFileReceiver.accept( new FastFile( file, unmodifyableparentvpath ) );
                 }
             }
             else if ( file.isDirectory() )
@@ -116,11 +133,12 @@ public class MultiReader
                     if ( firstDir == null )
                     {
                         firstDir = file;
-                        firstName = vpath;
+                        firstVpath = copy(mutablevpath);
                     }
                     else
                     {
-                        final Runnable target = new AsynchScanner( file, vpath + File.separatorChar );
+
+                        final Runnable target = new AsynchScanner( file, copy(mutablevpath) );
                         threadsStarted.incrementAndGet();
                         executor.submit( target );
                     }
@@ -129,7 +147,7 @@ public class MultiReader
         }
         if ( firstDir != null )
         {
-            scandir( firstDir, firstName + File.separatorChar );
+            scandir( firstDir, firstVpath);
         }
 
     }
@@ -139,18 +157,23 @@ public class MultiReader
     {
         File dir;
 
-        String file;
+        char[][] file;
 
-        AsynchScanner( File dir, String file )
+        AsynchScanner( File dir, char[][] vpath )
         {
             this.dir = dir;
-            this.file = file;
+            this.file = vpath;
         }
 
         @Override
         public void run()
         {
+            try {
+
             asynchscandir( dir, file );
+            } catch (Throwable e){
+                e.printStackTrace();
+            }
         }
     }
 
