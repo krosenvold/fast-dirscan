@@ -1,19 +1,21 @@
 package org.smartscan.api;
 
-/**
- * Created by kristian on 09.11.13.
- */
+import java.io.File;
+
 public class FastFile
 {
-    private final String fileName;
+    private final File file;
 
-    public FastFile( String fileName )
+    private final char[][] fileName;
+
+    public FastFile( File file, char[][] parentVpath )
     {
-        this.fileName = fileName;
+        this.file = file;
+        fileName = parentVpath;
     }
 
-    public String getFileName()
+    public File getFile()
     {
-        return fileName;
+        return file;
     }
 }

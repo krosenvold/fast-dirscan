@@ -22,6 +22,7 @@ package org.smartscan.tools;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.regex.Pattern;
 
 /**
  * Describes a match target for SelectorUtils.
@@ -35,11 +36,8 @@ public class MatchPattern
     @Nonnull
     private final String source;
 
-    @Nonnull
-    private final String altStr;
-
     @Nullable
-    private final String regexPattern;
+    private final Pattern regexPattern;
 
     @Nonnull
     private final char[][] tokenizedChar;
@@ -47,35 +45,43 @@ public class MatchPattern
     private MatchPattern( @Nonnull String source, @Nonnull String separator )
     {
         //noinspection AssignmentToNull
-        regexPattern = SelectorUtils.isRegexPrefixedPattern( source ) ? source.substring(
+        String regexPatternStr = SelectorUtils.isRegexPrefixedPattern( source ) ? source.substring(
             SelectorUtils.REGEX_HANDLER_PREFIX.length(),
             source.length() - SelectorUtils.PATTERN_HANDLER_SUFFIX.length() ) : null;
+        regexPattern = regexPatternStr != null ? Pattern.compile( regexPatternStr ) : null;
         this.source =
             SelectorUtils.isAntPrefixedPattern( source )
                 ? source.substring( SelectorUtils.ANT_HANDLER_PREFIX.length(), source.length()
                 - SelectorUtils.PATTERN_HANDLER_SUFFIX.length() )
                 : source;
         //noinspection HardcodedFileSeparator
-        altStr = source.replace( '\\', '/' );
-        tokenizedChar =  tokenizePathToCharArray( this.source, separator );
+        String altStr = source.replace( '\\', '/' );
+        tokenizedChar = tokenizePathToCharArray( this.source, separator );
     }
 
 
-    @SuppressWarnings( "IfMayBeConditional" )
-    boolean matchPath( String str, char[][] strDirs, boolean isCaseSensitive )
+    private static boolean separatorPatternStartSlashMismatch( MatchPattern matchPattern, char[][] vpath, char separator )
     {
-        if ( regexPattern != null )
-        {
-            return str.matches( regexPattern );
-        }
-        else
-        {
-            return SelectorUtils.matchAntPathPattern( tokenizedChar, strDirs, isCaseSensitive );
-        }
+        boolean vpathStartsWithSeparator = vpath[0][0] == separator;
+        boolean matchPatternStartsWithSeparator = matchPattern.startsWith( separator );
+        return vpath.length > 0 && vpathStartsWithSeparator != matchPatternStartsWithSeparator;
+    }
+
+
+    @SuppressWarnings( { "IfMayBeConditional", "TypeMayBeWeakened" } )
+    boolean matchRegexPath( @Nonnull String path )
+    {
+            return regexPattern != null &&  regexPattern.matcher( path ).matches();
+    }
+
+    @SuppressWarnings( "IfMayBeConditional" )
+    boolean matchAntPath( char[][] tokenizedVpath, boolean isCaseSensitive )
+    {
+        return SelectorUtils.matchAntPathPattern( tokenizedChar, tokenizedVpath, isCaseSensitive );
     }
 
     @SuppressWarnings( "HardcodedFileSeparator" )
-    public boolean matchPatternStart( String str, char[][] strDirs, boolean isCaseSensitive )
+    public boolean matchPatternStart( char[][] tokenizedvpath, boolean isCaseSensitive )
     {
         if ( regexPattern != null )
         {
@@ -84,21 +90,28 @@ public class MatchPattern
         }
         else
         {
-            return SelectorUtils.matchAntPathPatternStart( this, str, strDirs, File.separator, isCaseSensitive )
-                || SelectorUtils.matchAntPathPatternStart( this, altStr, strDirs, "/", isCaseSensitive );
+            return matchAntPathPatternStart( this, tokenizedvpath, File.separatorChar, isCaseSensitive )
+                || matchAntPathPatternStart( this, tokenizedvpath, '/', isCaseSensitive );
         }
     }
 
-    public char[][] getTokenizedPathStringChar()
+    static boolean matchAntPathPatternStart( MatchPattern pattern, char[][] vpath, char separator,
+                                             boolean isCaseSensitive )
     {
-        return tokenizedChar;
+
+        if ( separatorPatternStartSlashMismatch( pattern, vpath, separator ) )
+        {
+            return false;
+        }
+
+        return SelectorUtils.matchAntPathPatternStart( pattern.tokenizedChar, vpath, isCaseSensitive );
     }
 
-    public boolean startsWith( String string )
-    {
-        return source.startsWith( string );
-    }
 
+    public boolean startsWith( char thechar )
+    {
+        return !source.isEmpty() && source.charAt( 0 ) == thechar;
+    }
 
     public static char[][] tokenizePathToCharArray( String source, String separator )
     {
@@ -111,10 +124,14 @@ public class MatchPattern
         return tokenizedChar;
     }
 
-
     public static MatchPattern fromString( String source )
     {
         return new MatchPattern( source, File.separator );
+    }
+
+    public boolean usesRegex()
+    {
+        return regexPattern != null;
     }
 
 }

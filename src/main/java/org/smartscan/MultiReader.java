@@ -7,9 +7,6 @@ import org.smartscan.tools.ScannerTools;
 import org.smartscan.tools.SelectorUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -46,21 +43,9 @@ public class MultiReader
         this.fastFileReceiver = fastFileReceiver;
     }
 
-    public static char[][] tokenizePathToCharArrayWithOneExtra( String path, String separator )
+    public static char[][] tokenizePathToCharArrayWithOneExtra( String path, char separator )
     {
-        return SelectorUtils.tokenizePathToCharArray( path, separator.charAt( 0 ), 1 );
-    }
-
-    public static List<String> tokenizedArrayList( String path, String separator )
-    {
-        //noinspection CollectionWithoutInitialCapacity
-        List<String> ret = new ArrayList<>();
-        StringTokenizer st = new StringTokenizer( path, separator );
-        while ( st.hasMoreTokens() )
-        {
-            ret.add( st.nextToken() );
-        }
-        return ret;
+        return SelectorUtils.tokenizePathToCharArray( path, separator, 1 );
     }
 
     public void awaitScanResult()
@@ -99,7 +84,7 @@ public class MultiReader
     }
 
 
-    private void scandir( File dir, String vpath )
+    private void scandir( File dir, String parentvpath )
     {
         String[] newfiles = dir.list();
 
@@ -110,32 +95,32 @@ public class MultiReader
 
         File firstDir = null;
         String firstName = null;
-        char[][] dbl = tokenizePathToCharArrayWithOneExtra( vpath, File.separator );
+        char[][] mutablevpath = tokenizePathToCharArrayWithOneExtra( parentvpath, File.separatorChar );
         for ( String newfile : newfiles )
         {
-            String currentFullSubPath = vpath + newfile;
             File file = new File( dir, newfile );
-            dbl[dbl.length - 1] = newfile.toCharArray();
-            boolean shouldInclude = shouldInclude( currentFullSubPath, dbl );
+            String vpath = parentvpath + newfile;
+            mutablevpath[mutablevpath.length - 1] = newfile.toCharArray();
+            boolean shouldInclude = shouldInclude( mutablevpath );
             if ( file.isFile() )
             {
                 if ( shouldInclude )
                 {
-                    fastFileReceiver.accept( new FastFile( currentFullSubPath ) );
+                    fastFileReceiver.accept( new FastFile( file, mutablevpath ) ); // Todo: Look at mutablitiy
                 }
             }
             else if ( file.isDirectory() )
             {
-                if ( shouldInclude || couldHoldIncluded( currentFullSubPath, dbl ) )
+                if ( shouldInclude || couldHoldIncluded( mutablevpath ) )
                 {
                     if ( firstDir == null )
                     {
                         firstDir = file;
-                        firstName = currentFullSubPath;
+                        firstName = vpath;
                     }
                     else
                     {
-                        final Runnable target = new AsynchScanner( file, currentFullSubPath + File.separatorChar );
+                        final Runnable target = new AsynchScanner( file, vpath + File.separatorChar );
                         threadsStarted.incrementAndGet();
                         executor.submit( target );
                     }

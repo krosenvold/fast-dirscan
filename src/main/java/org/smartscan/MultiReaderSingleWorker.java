@@ -11,7 +11,7 @@ public class MultiReaderSingleWorker
 
     private final MultiReader reader;
 
-    protected final LinkedTransferQueue<String> queue;
+    protected final LinkedTransferQueue<FastFile> queue;
 
 
     /**
@@ -30,12 +30,12 @@ public class MultiReaderSingleWorker
 
     public void getScanResult( FastFileReceiver fastFileReceiver )
     {
-        String name;
+        FastFile name;
         while ( !reader.completed.get() )
         {
             while ( ( name = queue.poll() ) != null )
             {
-                fastFileReceiver.accept( new FastFile( name ) );
+                fastFileReceiver.accept( name );
             }
         }
     }
@@ -47,7 +47,7 @@ public class MultiReaderSingleWorker
             @Override
             public void accept( FastFile file )
             {
-                queue.add( file.getFileName() );
+                queue.add( file);
             }
         };
     }

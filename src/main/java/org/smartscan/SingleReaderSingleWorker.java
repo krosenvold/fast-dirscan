@@ -5,7 +5,6 @@ import org.mentaqueue.BatchingQueue;
 import org.mentaqueue.util.Builder;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
-import org.smartscan.tools.MatchPatterns;
 import org.smartscan.tools.ScannerTools;
 import org.smartscan.tools.SelectorUtils;
 
@@ -63,9 +62,9 @@ public class SingleReaderSingleWorker
                         }
                         char[][] tokenized = SelectorUtils.tokenizePathToCharArray( name, File.separatorChar, 0 );
 
-                        if (shouldInclude( name, tokenized ))
+                        if (shouldInclude( tokenized ))
                             {
-                                fastFileReceiver.accept( new FastFile( name ) );
+                                fastFileReceiver.accept( new FastFile( new File(name),  tokenized ) );
                             }
                     }
                 }
@@ -158,8 +157,8 @@ public class SingleReaderSingleWorker
                 {
                     char[][] dbl = SelectorUtils.tokenizePathToCharArray( currentFullSubPath, File.separatorChar, 0 );
 
-                    boolean shouldInclude = shouldInclude( currentFullSubPath, dbl );
-                    if ( shouldInclude || couldHoldIncluded( currentFullSubPath, dbl ) )
+                    boolean shouldInclude = shouldInclude( dbl );
+                    if ( shouldInclude || couldHoldIncluded( dbl ) )
                     {
                         scandir( file, currentFullSubPath + File.separator );
                     }

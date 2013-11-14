@@ -20,7 +20,8 @@
 package org.smartscan.tools;
 
 import java.io.File;
-
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A list of patterns to be matched
@@ -29,58 +30,70 @@ import java.io.File;
  */
 public class MatchPatterns
 {
-    private static final char[] NOTHING = { };
 
-    private final MatchPattern[] patterns;
+    private final MatchPattern[] antPatterns;
 
-    private MatchPatterns( MatchPattern... patterns )
+    private final MatchPattern[] regexPatterns;
+
+    private MatchPatterns( MatchPattern... antPatterns )
     {
-        this.patterns = patterns;
-    }
-
-    /**
-     * Checks these MatchPatterns against a specified string.
-     * <p/>
-     * Uses far less string tokenization than any of the alternatives.
-     *
-     * @param name            The name to look for
-     * @param isCaseSensitive If the comparison is case sensitive
-     * @return true if any of the supplied patterns match
-     */
-    public boolean matches( String name, boolean isCaseSensitive )
-    {
-        char[][] tokenized = SelectorUtils.tokenizePathToCharArray( name, File.separatorChar, 0 );
-        return matches(  name, tokenized, isCaseSensitive );
-    }
-
-
-    public boolean matches( String name, char[][] tokenizedNameChar, boolean isCaseSensitive )
-    {
-        for ( MatchPattern pattern : patterns )
+        List<MatchPattern> ant = new ArrayList<>( antPatterns.length );
+        List<MatchPattern> regex = new ArrayList<>( antPatterns.length );
+        for ( MatchPattern pattern : antPatterns )
         {
-            if ( pattern.matchPath( name, tokenizedNameChar, isCaseSensitive ) )
+            if ( pattern.usesRegex() )
+            {
+                regex.add( pattern );
+            }
+            else
+            {
+                ant.add( pattern );
+            }
+        }
+
+        this.antPatterns = ant.toArray( new MatchPattern[ant.size()] );
+        regexPatterns = regex.toArray( new MatchPattern[regex.size()] );
+    }
+
+
+    public boolean matches( char[][] tokenizedVpath, boolean isCaseSensitive )
+    {
+        for ( MatchPattern pattern : antPatterns )
+        {
+            if ( pattern.matchAntPath( tokenizedVpath, isCaseSensitive ) )
             {
                 return true;
+            }
+        }
+        if ( regexPatterns.length > 0 )
+        {
+            StringBuilder vpathB = new StringBuilder( );
+            for ( char[] chars : tokenizedVpath )
+            {
+                vpathB.append( chars );
+                vpathB.append( File.separatorChar );
+            }
+            String vpath2 = vpathB.toString();
+            for ( MatchPattern pattern : regexPatterns )
+            {
+                if ( pattern.matchRegexPath( vpath2 ) )
+                {
+                    return true;
+                }
             }
         }
         return false;
     }
 
-    public static char[][] toChars( String... tokenizedName )
+    public boolean matchesPatternStart( char[][] tokenizedVpath, boolean isCaseSensitive )
     {
-        char[][] tokenizedNameChar = new char[tokenizedName.length][];
-        for(int i = 0;  i < tokenizedName.length; i++){
-            String s = tokenizedName[i];
-            tokenizedNameChar[i] = s != null ? s.toCharArray() : NOTHING;
-        }
-        return tokenizedNameChar;
-    }
-
-    public boolean matchesPatternStart( String name, char[][] nameTokenized, boolean isCaseSensitive )
-    {
-        for ( MatchPattern includesPattern : patterns )
+        if ( regexPatterns.length > 0 )
         {
-            if ( includesPattern.matchPatternStart( name, nameTokenized, isCaseSensitive ) )
+            return true;
+        }
+        for ( MatchPattern includesPattern : antPatterns )
+        {
+            if ( includesPattern.matchPatternStart( tokenizedVpath, isCaseSensitive ) )
             {
                 return true;
             }

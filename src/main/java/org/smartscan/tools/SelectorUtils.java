@@ -42,39 +42,22 @@ public final class SelectorUtils
     }
 
 
-    static boolean matchAntPathPatternStart( MatchPattern pattern, String str, char[][] strDirs, String separator,
-                                             boolean isCaseSensitive )
-    {
-        if ( separatorPatternStartSlashMismatch( pattern, str, separator ) )
-        {
-            return false;
-        }
-
-        return matchAntPathPatternStart( pattern.getTokenizedPathStringChar(), strDirs, isCaseSensitive );
-    }
-
-    private static boolean separatorPatternStartSlashMismatch( MatchPattern matchPattern, String str, String separator )
-    {
-        return str.startsWith( separator ) != matchPattern.startsWith( separator );
-    }
-
-
-    static boolean matchAntPathPatternStart( char[][] patDirs, char[][] strDirs, boolean isCaseSensitive )
+    static boolean matchAntPathPatternStart( char[][] patterns, char[][] vpath, boolean isCaseSensitive )
     {
         int patIdxStart = 0;
-        int patIdxEnd = patDirs.length - 1;
+        int patIdxEnd = patterns.length - 1;
         int strIdxStart = 0;
-        int strIdxEnd = strDirs.length - 1;
+        int strIdxEnd = vpath.length - 1;
 
         // up to first '**'
         while ( patIdxStart <= patIdxEnd && strIdxStart <= strIdxEnd )
         {
-            char[] patDir = patDirs[patIdxStart];
+            char[] patDir = patterns[patIdxStart];
             if ( isDoubleStar( patDir ) )
             {
                 break;
             }
-            if ( !match( patDir, strDirs[strIdxStart], isCaseSensitive ) )
+            if ( !match( patDir, vpath[strIdxStart], isCaseSensitive ) )
             {
                 return false;
             }
