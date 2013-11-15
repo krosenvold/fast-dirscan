@@ -51,21 +51,6 @@ public class MultiReader
         this.fastFileReceiver = fastFileReceiver;
     }
 
-    public static char[][] copyWithOneExtra( char[][] original )
-    {
-        int length = original.length;
-        char[][] result = new char[length + 1][];
-        System.arraycopy( original, 0, result, 0, length );
-        return result;
-    }
-
-    public static char[][] copy( char[][] original )
-    {
-        int length = original.length;
-        char[][] result = new char[length][];
-        System.arraycopy( original, 0, result, 0, length );
-        return result;
-    }
 
     public void awaitScanResult()
     {
@@ -122,7 +107,7 @@ public class MultiReader
                 for ( File file : newfiles )
                 {
                     mutablevpath[mutablevpath.length - 1] = file.getName().toCharArray();
-                    BasicFileAttributes basicFileAttributes = null;
+                    BasicFileAttributes basicFileAttributes;
                     try
                     {
                         basicFileAttributes = Files.readAttributes( file.toPath(), BasicFileAttributes.class );

@@ -53,4 +53,22 @@ public class ModernBase
             && !excludesPatterns.matches( tokenizedVpath, isCaseSensitive );
     }
 
+    public static char[][] copy( char[][] original )
+    {
+        int length = original.length;
+        char[][] result = new char[length][];
+        System.arraycopy( original, 0, result, 0, length );
+        return result;
+    }
+
+    public static char[][] copyWithOneExtra( char[][] original )
+    {
+        int length = original.length;
+        char[][] result = new char[length + 1][];
+        System.arraycopy( original, 0, result, 0, length );
+        return result;
+    }
+
+
+
 }

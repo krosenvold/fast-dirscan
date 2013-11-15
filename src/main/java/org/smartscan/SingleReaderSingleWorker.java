@@ -8,7 +8,12 @@ import org.smartscan.api.FastFileReceiver;
 import org.smartscan.tools.ScannerTools;
 import org.smartscan.tools.SelectorUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -46,8 +51,7 @@ public class SingleReaderSingleWorker
         StringBuilder item;
         while ( true )
         {
-            @SuppressWarnings( "NumericCastThatLosesPrecision" )
-            int avail = (int) queue.availableToPoll();
+            @SuppressWarnings( "NumericCastThatLosesPrecision" ) int avail = (int) queue.availableToPoll();
             if ( avail > 0 )
             {
                 for ( int i = 0; i < avail; i++ )
@@ -62,45 +66,14 @@ public class SingleReaderSingleWorker
                         }
                         char[][] tokenized = SelectorUtils.tokenizePathToCharArray( name, File.separatorChar, 0 );
 
-                        if (shouldInclude( tokenized ))
-                            {
-                                fastFileReceiver.accept( new FastFile( new File(name),  tokenized ) );
-                            }
+                        if ( shouldInclude( tokenized ) )
+                        {
+                            fastFileReceiver.accept( new FastFile( new File( name ), tokenized ) );
+                        }
                     }
                 }
                 queue.donePolling();
             }
-        }
-    }
-
-    /**
-     * Scans the base directory for files which match at least one include
-     * pattern and don't match any exclude patterns. If there are selectors
-     * then the files must pass muster there, as well.
-     *
-     * @throws IllegalStateException if the base directory was set
-     *                               incorrectly (i.e. if it is {@code null}, doesn't exist,
-     *                               or isn't a directory).
-     */
-    public void scan()
-        throws IllegalStateException, InterruptedException
-    {
-        Runnable scanner = new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                scandir( basedir, "" );
-            }
-        };
-
-        final Thread thread = new Thread( scanner );
-        thread.start();
-        thread.join();
-
-        while ( threadsStarted.get() > 0 )
-        {
-            doSleep( 1 );
         }
     }
 
@@ -112,7 +85,7 @@ public class SingleReaderSingleWorker
             @Override
             public void run()
             {
-                scandir( basedir, "" );
+                scandir2( basedir, new char[0][] );
                 StringBuilder sb = queue.nextToDispatch();
                 while ( sb == null )
                 {
@@ -131,40 +104,52 @@ public class SingleReaderSingleWorker
     }
 
 
-    private void scandir( File dir, String vpath )
+    @SuppressWarnings( "AssignmentToMethodParameter" )
+    private void scandir2( File parent, char[][] unmodifyableparentvpath )
     {
-        String[] newfiles = dir.list();
+        File[] newfiles = parent.listFiles();
 
         if ( newfiles != null )
         {
-            for ( String newfile : newfiles )
+            char[][] mutablevpath = copyWithOneExtra( unmodifyableparentvpath );
+            for ( File file : newfiles )
             {
-                String currentFullSubPath = vpath + newfile;
-                File file = new File( dir, newfile );
-                if ( file.isFile() )
+                mutablevpath[mutablevpath.length - 1] = file.getName().toCharArray();
+                BasicFileAttributes basicFileAttributes;
+                try
                 {
-                    StringBuilder sb = queue.nextToDispatch();
-                    while ( sb == null )
-                    {
-                        doSleep( 10 );
-                        sb = queue.nextToDispatch();
-                    }
-                    sb.setLength( 0 );
-                    sb.append( currentFullSubPath );
-                    queue.flush();
+                    basicFileAttributes = Files.readAttributes( file.toPath(), BasicFileAttributes.class );
                 }
-                else if ( file.isDirectory() )
+                catch ( IOException e )
                 {
-                    char[][] dbl = SelectorUtils.tokenizePathToCharArray( currentFullSubPath, File.separatorChar, 0 );
-
-                    boolean shouldInclude = shouldInclude( dbl );
-                    if ( shouldInclude || couldHoldIncluded( dbl ) )
+                    throw new RuntimeException( e );
+                }
+                boolean shouldInclude = shouldInclude( mutablevpath );
+                if ( basicFileAttributes.isRegularFile() )
+                {
+                    if ( shouldInclude )
                     {
-                        scandir( file, currentFullSubPath + File.separator );
+                        StringBuilder sb = queue.nextToDispatch();
+                        while ( sb == null )
+                        {
+                            doSleep( 10 );
+                            sb = queue.nextToDispatch();
+                        }
+                        sb.setLength( 0 );
+                        sb.append( file.getPath() );
+                        queue.flush();
+                    }
+                }
+                else if ( basicFileAttributes.isDirectory() )
+                {
+                    if ( shouldInclude || couldHoldIncluded( mutablevpath ) )
+                    {
+                        scandir2( file, copy( mutablevpath ) );
                     }
                 }
             }
         }
     }
+
 
 }
