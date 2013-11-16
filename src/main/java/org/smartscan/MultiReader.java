@@ -10,9 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -138,7 +135,8 @@ public class MultiReader
 
                                 final AsynchScanner target = new AsynchScanner( file, copy( mutablevpath ) );
                                 threadsStarted.incrementAndGet();
-                                executor.submit( ForkJoinTask.adapt( target ));
+                                  //  System.out.println( "executor = " + executor );
+                                target.fork();
                             }
                         }
                     }
@@ -151,7 +149,7 @@ public class MultiReader
     }
 
 
-    class AsynchScanner implements Callable
+    class AsynchScanner extends ForkJoinTask
     {
         File dir;
 
@@ -163,9 +161,21 @@ public class MultiReader
             this.vpath = vpath;
         }
 
+
         @Override
-        public Object call()
-            throws Exception
+        public Object getRawResult()
+        {
+            return true;
+        }
+
+        @Override
+        protected void setRawResult( Object value )
+        {
+
+        }
+
+        @Override
+        protected boolean exec()
         {
             try
             {

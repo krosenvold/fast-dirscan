@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.text.Normalizer;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -104,6 +105,14 @@ public class SingleReaderSingleWorker
     }
 
 
+    protected String normalizeUnicode(String str) {
+        Normalizer.Form form = Normalizer.Form.NFD;
+        if (!Normalizer.isNormalized(str, form)) {
+            return Normalizer.normalize( str, form );
+        }
+        return str;
+    }
+
     @SuppressWarnings( "AssignmentToMethodParameter" )
     private void scandir2( File parent, char[][] unmodifyableparentvpath )
     {
@@ -122,7 +131,10 @@ public class SingleReaderSingleWorker
                 }
                 catch ( IOException e )
                 {
-                    throw new RuntimeException( e );
+                    String a = normalizeUnicode( file.getPath() );
+                    String b = file.getPath();
+                    System.out.println( "e = " +a + b );
+                    continue;
                 }
                 boolean shouldInclude = shouldInclude( mutablevpath );
                 if ( basicFileAttributes.isRegularFile() )
