@@ -49,10 +49,9 @@ public class BenchmarkTest
             assertThat( multiThreadedSingleReceiver(file, 12) ).describedAs("12 mtsr").isEqualTo( expected  );
             assertThat( multiThreadedSingleReceiver( file, 8 ) ).as("8 mtsr").isEqualTo( expected );
             assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected );
+			assertThat( multiThreaded( file, 10 ) ).as( "mr" ).isEqualTo( expected );
             assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected );
 			assertThat( multiThreaded(file, 16) ).as( "mr" ).isEqualTo( expected );
-			assertThat( multiThreaded( file, 20 ) ).as( "mr" ).isEqualTo( expected );
-
             System.out.println( "" );
         }
 
