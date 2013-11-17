@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
@@ -70,7 +71,7 @@ public class MultiReader
                 asynchscandir( basedir, NO_FILES_VPATH_ );
             }
         };
-        executor.submit( scanner );
+        executor.submit(scanner);
     }
 
     private void asynchscandir( File dir, char[][] vpath )
@@ -109,7 +110,7 @@ public class MultiReader
                     {
                         basicFileAttributes = Files.readAttributes( file.toPath(), BasicFileAttributes.class );
                     }
-                    catch ( IOException e )
+                    catch ( InvalidPathException | IOException e )
                     {
 						System.out.println(file.getPath());
 						continue;
