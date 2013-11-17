@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.text.Normalizer;
 import java.util.concurrent.ForkJoinTask;
@@ -129,7 +130,7 @@ public class SingleReaderSingleWorker
                 {
                     basicFileAttributes = Files.readAttributes( file.toPath(), BasicFileAttributes.class );
                 }
-                catch ( IOException e )
+                catch ( InvalidPathException | IOException e )
                 {
                     String a = normalizeUnicode( file.getPath() );
                     String b = file.getPath();
