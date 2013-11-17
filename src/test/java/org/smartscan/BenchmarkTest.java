@@ -46,12 +46,11 @@ public class BenchmarkTest
         for ( int i = 0; i < 10; i++ )
         {
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
-            assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
-            assertThat( multiThreadedSingleReceiver( file, 12 ) ).describedAs( "12 mtsr" ).isEqualTo( expected  );
-            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "8 mtsr" ).isEqualTo( expected );
+            assertThat( multiThreadedSingleReceiver(file, 12) ).describedAs("12 mtsr").isEqualTo( expected  );
+            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as("8 mtsr").isEqualTo( expected );
             assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected );
             assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected );
-			assertThat( multiThreaded( file, 16 ) ).as( "mr" ).isEqualTo( expected );
+			assertThat( multiThreaded(file, 16) ).as( "mr" ).isEqualTo( expected );
 			assertThat( multiThreaded( file, 20 ) ).as( "mr" ).isEqualTo( expected );
 
             System.out.println( "" );
@@ -131,25 +130,7 @@ public class BenchmarkTest
         }
     }
 
-    private static int singleReaderSingleWorker( File basedir )
-        throws InterruptedException
-    {
-        long milliStart = System.currentTimeMillis();
-        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
-        try
-        {
-            SingleReaderSingleWorker fst = new SingleReaderSingleWorker( basedir, null, null );
-            fst.scanThreaded();
-            fst.getScanResult( ffr );
-            return ffr.recvd.get();
-        }
-        finally
-        {
-            System.out.print( ", SRSW(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
-    }
-
-    private static String[] scanOriginal( File file )
+	private static String[] scanOriginal( File file )
     {
         long start = System.currentTimeMillis();
         try
