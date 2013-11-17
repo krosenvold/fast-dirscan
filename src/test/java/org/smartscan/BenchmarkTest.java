@@ -27,151 +27,160 @@ import org.junit.Test;
 import org.smartscan.api.FastFile;
 import org.smartscan.api.FastFileReceiver;
 
+import static junit.framework.Assert.assertNull;
 import static org.fest.assertions.api.Assertions.*;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Kristian Rosenvold
  */
-@SuppressWarnings( { "UseOfSystemOutOrSystemErr", "OverlyBroadThrowsClause" } )
-public class BenchmarkTest
-{
-    @Test
-    public void doRunBenchmarks()
-        throws Exception
-    {
-        assertThat( 1 ).isEqualTo( 1 );
-        final File file = new File( System.getProperty( "user.home" ), "fastdirscan-testdata" );
-        final int expected = scanOriginal( file ).length;
-        System.out.println( "Warmup complete" );
-        for ( int i = 0; i < 10; i++ )
-        {
-            assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
-            assertThat( singleReaderSingleWorker( file ) ).as( "srsw" ).isEqualTo( expected );
-            assertThat( multiThreadedSingleReceiver( file, 12 ) ).describedAs( "12 mtsr" ).isEqualTo( expected  );
-            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as( "8 mtsr" ).isEqualTo( expected );
-            assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected );
-            assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected );
+@SuppressWarnings({"UseOfSystemOutOrSystemErr", "OverlyBroadThrowsClause"})
+public class BenchmarkTest {
+	@Test
+	public void doRunBenchmarks()
+			throws Exception {
+		assertThat(1).isEqualTo(1);
+		final File file = new File(System.getProperty("user.home"), "fastdirscan-testdata");
+		final int expected = scanOriginal(file).length;
+		System.out.println("Warmup complete");
+		for (int i = 0; i < 10; i++) {
+			assertThat(scanOriginal(file).length).as("original result").isEqualTo(expected);
+			assertThat(singleReaderSingleWorker(file)).as("srsw").isEqualTo(expected);
+			assertThat(multiThreadedSingleReceiver(file, 12)).describedAs("12 mtsr").isEqualTo(expected);
+			assertThat(multiThreadedSingleReceiver(file, 8)).as("8 mtsr").isEqualTo(expected);
+			assertThat(multiThreadedSingleReceiver(file, 4)).as("4 mtsr").isEqualTo(expected);
+			assertThat(multiThreaded(file, 12)).as("mr").isEqualTo(expected);
 
-            System.out.println( "" );
-        }
+			System.out.println("");
+		}
 
-    }
+	}
 
-    @Test
-    @Ignore
-    public void srswx10()
-        throws Exception
-    {
-        assertThat( 1 ).isEqualTo( 1 );
-        final File file = new File( System.getProperty( "user.home" ), "fastdirscan-testdata" );
-        System.out.println( "Warmup complete" );
-        multiThreaded( file, 12 );
+	@Test
+	@Ignore
+	public void srswx10()
+			throws Exception {
+		assertThat(1).isEqualTo(1);
+		final File file = new File(System.getProperty("user.home"), "fastdirscan-testdata");
+		System.out.println("Warmup complete");
+		multiThreaded(file, 12);
 
-    }
+	}
 
-    private static int multiThreadedSingleReceiver( File basedir, int nThreads )
-        throws InterruptedException
-    {
-        long milliStart = System.currentTimeMillis();
-        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
-        try
-        {
-            MultiReaderSingleWorker scanner = new MultiReaderSingleWorker( basedir, null, null, nThreads );
-            scanner.getScanResult( ffr );
-            scanner.close();
-            return ffr.recvd.get();
-        }
-        finally
-        {
-            System.out.print( ", MRSW" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
-    }
+	@Test
+	public void listVsAttrs() {
 
-    private static int multiThreaded( File basedir, int nThreads )
-        throws InterruptedException
-    {
-        long milliStart = System.currentTimeMillis();
-        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
-        try
-        {
-            MultiReader scanner = new MultiReader( basedir, null, null, ffr, nThreads );
+		File file = new File("/Users/kristian/fastdirscan-testdata");
+		long start = System.currentTimeMillis();
+		for (int i = 0; i < 10000; i++) {
+			File[] list = file.listFiles();
+			for (File file1 : list) {
+				File[] files = file1.listFiles();
+				if (files != null) {
+					assertNotNull(files);
+				}
+			}
+		}
+		System.out.println("(System.currentTimeMillis() - start) = " + (System.currentTimeMillis() - start));
+		long start2 = System.currentTimeMillis();
+		for (int i = 0; i < 10000; i++) {
+			File[] list = file.listFiles();
+			for (File file1 : list) {
+				if (file1.isDirectory()) {
+					File[] files = file1.listFiles();
+					if (files != null) {
+						assertNotNull(files);
+					}
+				}
+			}
+		}
+		System.out.println("(System.currentTimeMillis() - start) = " + (System.currentTimeMillis() - start2));
 
-            scanner.scanThreaded();
-            scanner.awaitScanResult();
-            scanner.close();
-            return ffr.recvd.get();
-        }
-        finally
-        {
-            System.out.print( ", MR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
-    }
+	}
 
-    static class ConcurrentFileReceiver
-        implements FastFileReceiver
-    {
-        private FastFile first;
+	private static int multiThreadedSingleReceiver(File basedir, int nThreads)
+			throws InterruptedException {
+		long milliStart = System.currentTimeMillis();
+		ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+		try {
+			MultiReaderSingleWorker scanner = new MultiReaderSingleWorker(basedir, null, null, nThreads);
+			scanner.getScanResult(ffr);
+			scanner.close();
+			return ffr.recvd.get();
+		} finally {
+			System.out.print(", MRSW" + nThreads + "(" + ffr.firstSeenAt + ")=" + (System.currentTimeMillis() - milliStart));
+		}
+	}
 
-        private long firstSeenAt;
+	private static int multiThreaded(File basedir, int nThreads)
+			throws InterruptedException {
+		long milliStart = System.currentTimeMillis();
+		ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+		try {
+			MultiReader scanner = new MultiReader(basedir, null, null, ffr, nThreads);
 
-        long milliStart = System.currentTimeMillis();
+			scanner.scanThreaded();
+			scanner.awaitScanResult();
+			scanner.close();
+			return ffr.recvd.get();
+		} finally {
+			System.out.print(", MR" + nThreads + "(" + ffr.firstSeenAt + ")=" + (System.currentTimeMillis() - milliStart));
+		}
+	}
 
-        private final AtomicInteger recvd = new AtomicInteger( 0 );
+	static class ConcurrentFileReceiver
+			implements FastFileReceiver {
+		private FastFile first;
 
-        public void accept( FastFile file )
-        {
-            if ( first == null )
-            {
-                firstSeenAt = System.currentTimeMillis() - milliStart;
-                first = file;
-            }
-            recvd.incrementAndGet();
-        }
-    }
+		private long firstSeenAt;
 
-    private static int singleReaderSingleWorker( File basedir )
-        throws InterruptedException
-    {
-        long milliStart = System.currentTimeMillis();
-        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
-        try
-        {
-            SingleReaderSingleWorker fst = new SingleReaderSingleWorker( basedir, null, null );
-            fst.scanThreaded();
-            fst.getScanResult( ffr );
-            return ffr.recvd.get();
-        }
-        finally
-        {
-            System.out.print( ", SRSW(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
-    }
+		long milliStart = System.currentTimeMillis();
 
-    private static String[] scanOriginal( File file )
-    {
-        long start = System.currentTimeMillis();
-        try
-        {
-            DirectoryScanner directoryScanner = new DirectoryScanner();
-            directoryScanner.setIncludes( null );
-            directoryScanner.setExcludes( null );
-            directoryScanner.setBasedir( file );
-            directoryScanner.scan();
+		private final AtomicInteger recvd = new AtomicInteger(0);
 
-            final String[] includedFiles = directoryScanner.getIncludedFiles();
-            int size = includedFiles.length;
-            String foo;
-            for ( int i = 0; i < size; i++ )
-            {
-                foo = includedFiles[i];
-            }
-            return includedFiles;
-        }
-        finally
-        {
-            final long elapsed = System.currentTimeMillis() - start;
-            System.out.print( "Elapsed, old=" + elapsed );
+		public void accept(FastFile file) {
+			if (first == null) {
+				firstSeenAt = System.currentTimeMillis() - milliStart;
+				first = file;
+			}
+			recvd.incrementAndGet();
+		}
+	}
 
-        }
-    }
+	private static int singleReaderSingleWorker(File basedir)
+			throws InterruptedException {
+		long milliStart = System.currentTimeMillis();
+		ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+		try {
+			SingleReaderSingleWorker fst = new SingleReaderSingleWorker(basedir, null, null);
+			fst.scanThreaded();
+			fst.getScanResult(ffr);
+			return ffr.recvd.get();
+		} finally {
+			System.out.print(", SRSW(" + ffr.firstSeenAt + ")=" + (System.currentTimeMillis() - milliStart));
+		}
+	}
+
+	private static String[] scanOriginal(File file) {
+		long start = System.currentTimeMillis();
+		try {
+			DirectoryScanner directoryScanner = new DirectoryScanner();
+			directoryScanner.setIncludes(null);
+			directoryScanner.setExcludes(null);
+			directoryScanner.setBasedir(file);
+			directoryScanner.scan();
+
+			final String[] includedFiles = directoryScanner.getIncludedFiles();
+			int size = includedFiles.length;
+			String foo;
+			for (int i = 0; i < size; i++) {
+				foo = includedFiles[i];
+			}
+			return includedFiles;
+		} finally {
+			final long elapsed = System.currentTimeMillis() - start;
+			System.out.print("Elapsed, old=" + elapsed);
+
+		}
+	}
 }
