@@ -111,7 +111,8 @@ public class MultiReader
                     }
                     catch ( IOException e )
                     {
-                        throw new RuntimeException( e );
+						System.out.println(file.getPath());
+						continue;
                     }
                     boolean shouldInclude = shouldInclude( mutablevpath );
                     if ( basicFileAttributes.isRegularFile() )
