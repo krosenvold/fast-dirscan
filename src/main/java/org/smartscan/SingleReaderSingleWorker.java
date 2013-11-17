@@ -134,7 +134,7 @@ public class SingleReaderSingleWorker
                 {
                     String a = normalizeUnicode( file.getPath() );
                     String b = file.getPath();
-                    System.out.println( "e = " +a + b );
+                //    System.out.println( "e = " +a + b );
                     continue;
                 }
                 boolean shouldInclude = shouldInclude( mutablevpath );
