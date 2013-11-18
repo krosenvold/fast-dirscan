@@ -1,9 +1,8 @@
-package org.smartscan;
+package org.smartscan.tools;
 
 
-import org.smartscan.api.FastFile;
-import org.smartscan.api.FastFileReceiver;
-import org.smartscan.tools.ScannerTools;
+import org.smartscan.api.SmartFile;
+import org.smartscan.api.SmartFileReceiver;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -29,7 +28,7 @@ public class MultiReader
 
     private final ForkJoinPool executor;
 
-    private final FastFileReceiver fastFileReceiver;
+    private final SmartFileReceiver smartFileReceiver;
 
     public final AtomicBoolean completed = new AtomicBoolean( false );
 
@@ -40,14 +39,23 @@ public class MultiReader
      *
      * @noinspection JavaDoc
      */
-    public MultiReader( File basedir, String[] includes, String[] excludes, FastFileReceiver fastFileReceiver,
+    public MultiReader( File basedir, String[] includes, String[] excludes, SmartFileReceiver smartFileReceiver,
                         int nThreads )
     {
         super( basedir, includes, excludes );
         ScannerTools.verifyBaseDir( basedir );
         executor = new ForkJoinPool( nThreads );
-        this.fastFileReceiver = fastFileReceiver;
+        this.smartFileReceiver = smartFileReceiver;
     }
+
+	public MultiReader( File basedir, MatchPatterns includes, MatchPatterns excludes, SmartFileReceiver smartFileReceiver,
+						int nThreads )
+	{
+		super( basedir, includes, excludes );
+		ScannerTools.verifyBaseDir( basedir );
+		executor = new ForkJoinPool( nThreads );
+		this.smartFileReceiver = smartFileReceiver;
+	}
 
 
     public void awaitScanResult()
@@ -120,7 +128,7 @@ public class MultiReader
                     {
                         if ( shouldInclude )
                         {
-                            fastFileReceiver.accept( new FastFile( file, unmodifyableparentvpath ) );
+                            smartFileReceiver.accept( new SmartFile( file, unmodifyableparentvpath ) );
                         }
                     }
                     else if ( basicFileAttributes.isDirectory() )
@@ -151,7 +159,8 @@ public class MultiReader
     }
 
 
-    class AsynchScanner extends ForkJoinTask
+    @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
+	final class AsynchScanner extends ForkJoinTask
     {
         File dir;
 
@@ -167,7 +176,7 @@ public class MultiReader
         @Override
         public Object getRawResult()
         {
-            return true;
+            return Boolean.TRUE;
         }
 
         @Override

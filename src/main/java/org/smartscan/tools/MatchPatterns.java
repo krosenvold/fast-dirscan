@@ -19,6 +19,8 @@
 
 package org.smartscan.tools;
 
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ import java.util.List;
  *
  * @author Kristian Rosenvold
  */
+@ThreadSafe
 public class MatchPatterns
 {
 
@@ -112,7 +115,8 @@ public class MatchPatterns
         return false;
     }
 
-    public static MatchPatterns from( String... sources )
+    public static @Nonnull
+	MatchPatterns from( String... sources )
     {
         final int length = sources.length;
         MatchPattern[] result = new MatchPattern[length];

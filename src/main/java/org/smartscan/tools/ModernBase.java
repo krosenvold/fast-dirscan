@@ -1,4 +1,4 @@
-package org.smartscan;
+package org.smartscan.tools;
 
 
 import org.smartscan.tools.MatchPatterns;
@@ -30,7 +30,14 @@ public class ModernBase
         excludesPatterns = MatchPatterns.from( ScannerTools.getExcludes( excludes ) );
     }
 
-    protected boolean couldHoldIncluded( char[][] tokenizedvpath )
+	protected ModernBase( File basedir, MatchPatterns includes, MatchPatterns excludes )
+	{
+		this.basedir = basedir;
+		includesPatterns =  includes ;
+		excludesPatterns = excludes;
+	}
+
+	protected boolean couldHoldIncluded( char[][] tokenizedvpath )
     {
         return includesPatterns.matchesPatternStart( tokenizedvpath, isCaseSensitive);
     }

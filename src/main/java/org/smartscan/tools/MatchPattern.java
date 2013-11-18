@@ -21,6 +21,7 @@ package org.smartscan.tools;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.regex.Pattern;
 
@@ -31,6 +32,7 @@ import java.util.regex.Pattern;
  *
  * @author Kristian Rosenvold
  */
+@ThreadSafe
 public class MatchPattern
 {
     @Nonnull
@@ -106,7 +108,6 @@ public class MatchPattern
 
         return SelectorUtils.matchAntPathPatternStart( pattern.tokenizedChar, vpath, isCaseSensitive );
     }
-
 
     public boolean startsWith( char thechar )
     {
