@@ -18,6 +18,7 @@
  */package org.smartscan.api;
 
 import java.io.File;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class SmartFile
 {
@@ -25,14 +26,19 @@ public class SmartFile
 
     private final char[][] fileName;
 
-    public SmartFile(File file, char[][] parentVpath)
+    private SmartFile(File file, char[][] parentVpath)
     {
         this.file = file;
 		//noinspection AssignmentToCollectionOrArrayFieldFromParameter
 		fileName = parentVpath;
     }
 
-    public File getFile()
+	public static SmartFile createSmartFile(File file, char[][] parentVpath, BasicFileAttributes basicFileAttributes) {
+		return new SmartFile(file, parentVpath);
+	}
+
+
+	public File getFile()
     {
         return file;
     }

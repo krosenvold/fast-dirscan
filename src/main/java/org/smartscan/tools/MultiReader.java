@@ -8,7 +8,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
@@ -50,7 +49,7 @@ public class MultiReader
     @SuppressWarnings("StatementWithEmptyBody")
 	public void awaitCompletion()
     {
-		while (!executor.isQuiescent()) {}
+		while (!executor.isQuiescent()) {doSleep(1);}
         executor.shutdown();
     }
 
@@ -62,20 +61,14 @@ public class MultiReader
             @Override
             public void run()
             {
-                asynchscandir( basedir, NO_FILES_VPATH_ );
-            }
+				scandir(basedir, NO_FILES_VPATH_);
+			}
         };
         executor.submit(scanner);
     }
 
-    private void asynchscandir( File dir, char[][] vpath )
-    {
-        scandir( dir, vpath );
-    }
 
-
-
-    @SuppressWarnings( "AssignmentToMethodParameter" )
+	@SuppressWarnings( "AssignmentToMethodParameter" )
     private void scandir( File parent, char[][] unmodifyableparentvpath )
     {
         @Nullable File firstDir;
@@ -89,9 +82,8 @@ public class MultiReader
 
             if ( newfiles != null )
             {
-
                 char[][] mutablevpath = copyWithOneExtra( unmodifyableparentvpath );
-                for ( File file : newfiles )
+                for ( final File file : newfiles )
                 {
                     mutablevpath[mutablevpath.length - 1] = file.getName().toCharArray();
                     BasicFileAttributes basicFileAttributes;
@@ -99,17 +91,16 @@ public class MultiReader
                     {
                         basicFileAttributes = Files.readAttributes( file.toPath(), BasicFileAttributes.class );
                     }
-                    catch ( InvalidPathException | IOException e )
+                    catch ( IOException e )
                     {
-						//System.out.println(file.getPath());
-						continue;
+						throw new RuntimeException(e);
                     }
                     boolean shouldInclude = shouldInclude( mutablevpath );
                     if ( basicFileAttributes.isRegularFile() )
                     {
                         if ( shouldInclude )
                         {
-                            smartFileReceiver.accept( new SmartFile( file, unmodifyableparentvpath ) );
+                            smartFileReceiver.accept(SmartFile.createSmartFile(file, unmodifyableparentvpath, basicFileAttributes));
                         }
                     }
                     else if ( basicFileAttributes.isDirectory() )
@@ -123,11 +114,14 @@ public class MultiReader
                             }
                             else
                             {
-
-                                final AsynchScanner target = new AsynchScanner( file, copy( mutablevpath ) );
-                                //threadsStarted.incrementAndGet();
-                                  // Todo: appears to swallow exceptions
-                                target.fork();
+								final char[][] copy = copy(mutablevpath);
+								new RecursiveAction() {
+									@Override
+									protected void compute() {
+										scandir(file, copy);
+									}
+								}.fork();
+								// Todo: fix swallowed exceptions
                             }
                         }
                     }
@@ -138,35 +132,4 @@ public class MultiReader
         }
         while ( firstDir != null );
     }
-
-
-    @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-	final class AsynchScanner extends RecursiveAction
-    {
-        private final File dir;
-
-		private final char[][] vpath;
-
-        AsynchScanner( File dir, char[][] vpath )
-        {
-            this.dir = dir;
-            this.vpath = vpath;
-        }
-
-
-		@Override
-		protected void compute() {
-            try
-            {
-
-                asynchscandir( dir, vpath );
-            }
-            catch ( Throwable e )
-            {
-				throw new RuntimeException(e);
-            }
-        }
-    }
-
-
 }

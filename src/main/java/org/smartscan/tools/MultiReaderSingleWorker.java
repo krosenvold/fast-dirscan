@@ -5,21 +5,17 @@ import org.smartscan.api.SmartFileReceiver;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedTransferQueue;
 
-public class MultiReaderSingleWorker
+public class MultiReaderSingleWorker implements Iterator<SmartFile>
 {
 
     private final MultiReader reader;
 
-    protected final LinkedTransferQueue<SmartFile> queue;
+    private final LinkedTransferQueue<SmartFile> queue;
 
-
-    /**
-     * Sole constructor.
-     *
-     * @noinspection JavaDoc
-     */
 	public MultiReaderSingleWorker( @Nonnull File basedir, @Nonnull MatchPatterns includes,
 									@Nonnull MatchPatterns excludes, int nThreads )
 			throws InterruptedException
@@ -29,19 +25,7 @@ public class MultiReaderSingleWorker
 		reader.beginThreadedScan();
 	}
 
-    public void getScanResult( SmartFileReceiver smartFileReceiver)
-    {
-        SmartFile name;
-        while ( !reader.isComplete())
-        {
-            while ( ( name = queue.poll() ) != null )
-            {
-                smartFileReceiver.accept( name );
-            }
-        }
-    }
-
-    private SmartFileReceiver getFastFileReceiver()
+	private SmartFileReceiver getFastFileReceiver()
     {
         return new SmartFileReceiver()
         {
@@ -53,18 +37,28 @@ public class MultiReaderSingleWorker
         };
     }
 
+	@SuppressWarnings("StatementWithEmptyBody")
 	public boolean hasNext() {
-			while ( !reader.isComplete()  && queue.peek() == null )
-				;
+			while ( !reader.isComplete()  && queue.peek() == null ){
+
+			}
 			return queue.peek() != null;
 
 	}
 
+	@Override
 	public SmartFile next(){
-		return queue.poll();
+		SmartFile next = queue.poll();
+		if (next == null) {
+			throw new NoSuchElementException("Illegal state");
+		}
+		return next;
 	}
 
-	public void close(){
-		reader.awaitCompletion();
+	@Override
+	public void remove() {
+		throw new UnsupportedOperationException("Cant do that");
 	}
+
+
 }

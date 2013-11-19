@@ -9,7 +9,6 @@ import org.smartscan.tools.ScannerTools;
 
 import java.io.File;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * @author Kristian Rosenvold
@@ -37,40 +36,10 @@ public class SmartScanner implements Iterable<SmartFile> {
 	@Override
 	public Iterator<SmartFile> iterator() {
 		try {
-			final MultiReaderSingleWorker
-			multiReaderSingleWorker = new MultiReaderSingleWorker(basedir, includesPatterns,
-					excludesPatterns, nThreads);
-			return new SmartFileIterator(multiReaderSingleWorker);
+			return new MultiReaderSingleWorker(basedir, includesPatterns, excludesPatterns, nThreads);
 		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private static class SmartFileIterator implements Iterator<SmartFile> {
-		private final MultiReaderSingleWorker multiReaderSingleWorker;
-
-		private SmartFileIterator(MultiReaderSingleWorker multiReaderSingleWorker) {
-			this.multiReaderSingleWorker = multiReaderSingleWorker;
-		}
-
-		@Override
-		public boolean hasNext() {
-			return multiReaderSingleWorker.hasNext();
-		}
-
-		@Override
-		public SmartFile next() {
-			SmartFile next = multiReaderSingleWorker.next();
-			if (next == null) {
-				throw new NoSuchElementException("Illegal state");
-			}
-			return next;
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException("Not Supported");
-
-		}
-	}
 }
