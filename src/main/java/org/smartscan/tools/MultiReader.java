@@ -40,7 +40,11 @@ public class MultiReader
 	}
 
 	public boolean isComplete(){
-		return executor.isQuiescent();
+		final boolean quiescent = executor.isQuiescent();
+		if (quiescent){
+			executor.shutdown();
+		}
+		return quiescent;
 	}
 
     @SuppressWarnings("StatementWithEmptyBody")

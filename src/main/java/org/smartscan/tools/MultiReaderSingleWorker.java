@@ -63,4 +63,8 @@ public class MultiReaderSingleWorker
 	public SmartFile next(){
 		return queue.poll();
 	}
+
+	public void close(){
+		reader.awaitCompletion();
+	}
 }
