@@ -51,11 +51,11 @@ public class BenchmarkTest
         {
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
             Assert.assertEquals("12 mtsr", expected +1 , multiThreadedSingleReceiver(file, 12));
-            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as("8 mtsr").isEqualTo( expected +1);
+            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as("8 mtsr").isEqualTo(expected + 1);
             assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected +1 );
-			assertThat( multiThreaded( file, 10 ) ).as( "mr" ).isEqualTo( expected +1 );
-            assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected +1 );
-			assertThat( multiThreaded(file, 16) ).as( "mr" ).isEqualTo( expected +1 );
+			assertThat( multiThreaded( file, 10 ) ).as( "mr" ).isEqualTo( expected  );
+            assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected  );
+			assertThat( multiThreaded(file, 16) ).as( "mr" ).isEqualTo( expected);
             System.out.println( "" );
         }
 
@@ -104,11 +104,9 @@ public class BenchmarkTest
 			SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
 			final AtomicInteger recvd = new AtomicInteger( 0 );
 
-			for (SmartFile s : ss) {
-				recvd.incrementAndGet();
-			}
-			// todo: Closing
-			return recvd.incrementAndGet();
+			ss.scan(ffr);
+
+			return ffr.recvd.get();
         }
         finally
         {

@@ -26,7 +26,6 @@ public class SmartScanner implements Iterable<SmartFile> {
 		this.nThreads = nThreads;
 		includesPatterns = MatchPatterns.from(ScannerTools.getIncludes(includes));
 		excludesPatterns = MatchPatterns.from(ScannerTools.getExcludes(excludes));
-
 	}
 
 	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {

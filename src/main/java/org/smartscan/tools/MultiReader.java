@@ -12,6 +12,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinTask;
+import java.util.concurrent.RecursiveAction;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,23 +31,9 @@ public class MultiReader
 
     private final SmartFileReceiver smartFileReceiver;
 
-    public final AtomicBoolean completed = new AtomicBoolean( false );
+    private final AtomicBoolean completed = new AtomicBoolean( false );
 
     private static final String[] NOFILES = new String[0];
-
-    /**
-     * Sole constructor.
-     *
-     * @noinspection JavaDoc
-     */
-    public MultiReader( File basedir, String[] includes, String[] excludes, SmartFileReceiver smartFileReceiver,
-                        int nThreads )
-    {
-        super( basedir, includes, excludes );
-        ScannerTools.verifyBaseDir( basedir );
-        executor = new ForkJoinPool( nThreads );
-        this.smartFileReceiver = smartFileReceiver;
-    }
 
 	public MultiReader( File basedir, MatchPatterns includes, MatchPatterns excludes, SmartFileReceiver smartFileReceiver,
 						int nThreads )
@@ -57,6 +44,9 @@ public class MultiReader
 		this.smartFileReceiver = smartFileReceiver;
 	}
 
+	public boolean isComplete(){
+		return completed.get();
+	}
 
     public void awaitScanResult()
     {
@@ -160,11 +150,11 @@ public class MultiReader
 
 
     @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
-	final class AsynchScanner extends ForkJoinTask
+	final class AsynchScanner extends RecursiveAction
     {
-        File dir;
+        private final File dir;
 
-        char[][] vpath;
+		private final char[][] vpath;
 
         AsynchScanner( File dir, char[][] vpath )
         {
@@ -173,31 +163,16 @@ public class MultiReader
         }
 
 
-        @Override
-        public Object getRawResult()
-        {
-            return Boolean.TRUE;
-        }
-
-        @Override
-        protected void setRawResult( Object value )
-        {
-
-        }
-
-        @Override
-        protected boolean exec()
-        {
+		@Override
+		protected void compute() {
             try
             {
 
                 asynchscandir( dir, vpath );
-                return true;
             }
             catch ( Throwable e )
             {
-                e.printStackTrace();
-                return false;
+				throw new RuntimeException(e);
             }
         }
     }

@@ -32,7 +32,7 @@ public class MultiReaderSingleWorker
     public void getScanResult( SmartFileReceiver smartFileReceiver)
     {
         SmartFile name;
-        while ( !reader.completed.get() )
+        while ( !reader.isComplete())
         {
             while ( ( name = queue.poll() ) != null )
             {
@@ -59,7 +59,7 @@ public class MultiReaderSingleWorker
     }
 
 	public boolean hasNext() {
-			while ( !reader.completed.get()  && queue.peek() == null )
+			while ( !reader.isComplete()  && queue.peek() == null )
 				;
 			return queue.peek() != null;
 
