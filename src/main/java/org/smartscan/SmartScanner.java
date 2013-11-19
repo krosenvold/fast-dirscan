@@ -30,9 +30,8 @@ public class SmartScanner implements Iterable<SmartFile> {
 
 	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {
 		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
-		multiReader.scanThreaded();
-		multiReader.awaitScanResult();
-		multiReader.close();
+		multiReader.beginThreadedScan();
+		multiReader.awaitCompletion();
 	}
 
 	@Override

@@ -48,8 +48,9 @@ public class MultiReader
 		return completed.get();
 	}
 
-    public void awaitScanResult()
+    public void awaitCompletion()
     {
+		// can't use shuwdown because we don't know when scheduling is complete.
         //noinspection StatementWithEmptyBody
         while ( threadsStarted.get() > 0 )
         {
@@ -57,8 +58,7 @@ public class MultiReader
         executor.shutdown();
     }
 
-
-    public void scanThreaded()
+	public void beginThreadedScan()
         throws IllegalStateException, InterruptedException
     {
         Runnable scanner = new Runnable()
@@ -82,6 +82,7 @@ public class MultiReader
         }
 
     }
+
 
 
     @SuppressWarnings( "AssignmentToMethodParameter" )
@@ -135,7 +136,7 @@ public class MultiReader
 
                                 final AsynchScanner target = new AsynchScanner( file, copy( mutablevpath ) );
                                 threadsStarted.incrementAndGet();
-                                  //  System.out.println( "executor = " + executor );
+                                  // Todo: appears to swallow exceptions
                                 target.fork();
                             }
                         }
@@ -177,9 +178,5 @@ public class MultiReader
         }
     }
 
-    public void close()
-    {
-        executor.shutdown();
-    }
 
 }

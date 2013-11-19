@@ -26,7 +26,7 @@ public class MultiReaderSingleWorker
 	{
 		queue = new LinkedTransferQueue<>();
 		reader = new MultiReader( basedir, includes, excludes, getFastFileReceiver(), nThreads );
-		reader.scanThreaded();
+		reader.beginThreadedScan();
 	}
 
     public void getScanResult( SmartFileReceiver smartFileReceiver)
@@ -51,11 +51,6 @@ public class MultiReaderSingleWorker
                 queue.add( file);
             }
         };
-    }
-
-    public void close()
-    {
-        reader.close();
     }
 
 	public boolean hasNext() {
