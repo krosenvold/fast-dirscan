@@ -11,10 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Reads with multiple threads
@@ -25,15 +22,13 @@ public class MultiReader
 
     public static final char[][] NO_FILES_VPATH_ = new char[0][];
 
-    private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
+  //  private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
 
     private final ForkJoinPool executor;
 
     private final SmartFileReceiver smartFileReceiver;
 
-    private final AtomicBoolean completed = new AtomicBoolean( false );
-
-    private static final String[] NOFILES = new String[0];
+ //   private final AtomicBoolean completed = new AtomicBoolean( false );
 
 	public MultiReader( File basedir, MatchPatterns includes, MatchPatterns excludes, SmartFileReceiver smartFileReceiver,
 						int nThreads )
@@ -45,16 +40,13 @@ public class MultiReader
 	}
 
 	public boolean isComplete(){
-		return completed.get();
+		return executor.isQuiescent();
 	}
 
-    public void awaitCompletion()
+    @SuppressWarnings("StatementWithEmptyBody")
+	public void awaitCompletion()
     {
-		// can't use shuwdown because we don't know when scheduling is complete.
-        //noinspection StatementWithEmptyBody
-        while ( threadsStarted.get() > 0 )
-        {
-        }
+		while (!executor.isQuiescent()) {}
         executor.shutdown();
     }
 
@@ -75,12 +67,6 @@ public class MultiReader
     private void asynchscandir( File dir, char[][] vpath )
     {
         scandir( dir, vpath );
-        int i = threadsStarted.decrementAndGet();
-        if ( i == 0 )
-        {
-            completed.set( true );
-        }
-
     }
 
 
@@ -111,7 +97,7 @@ public class MultiReader
                     }
                     catch ( InvalidPathException | IOException e )
                     {
-						//sSystem.out.println(file.getPath());
+						System.out.println(file.getPath());
 						continue;
                     }
                     boolean shouldInclude = shouldInclude( mutablevpath );
@@ -135,7 +121,7 @@ public class MultiReader
                             {
 
                                 final AsynchScanner target = new AsynchScanner( file, copy( mutablevpath ) );
-                                threadsStarted.incrementAndGet();
+                                //threadsStarted.incrementAndGet();
                                   // Todo: appears to swallow exceptions
                                 target.fork();
                             }
