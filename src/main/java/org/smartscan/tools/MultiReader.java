@@ -97,7 +97,7 @@ public class MultiReader
                     }
                     catch ( InvalidPathException | IOException e )
                     {
-						System.out.println(file.getPath());
+						//System.out.println(file.getPath());
 						continue;
                     }
                     boolean shouldInclude = shouldInclude( mutablevpath );
