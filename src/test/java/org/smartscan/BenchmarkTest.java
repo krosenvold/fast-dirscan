@@ -44,7 +44,7 @@ public class BenchmarkTest
         throws Exception
     {
         assertThat( 1 ).isEqualTo( 1 );
-        final File file = new File( System.getProperty( "user.home" ), "fastdirscan-testdata" );
+		final File file = new File( "src/test/testdata/perftestData" );
         final int expected = scanOriginal( file ).length;
         System.out.println( "Warmup complete" );
         for ( int i = 0; i < 10; i++ )
@@ -67,7 +67,7 @@ public class BenchmarkTest
         throws Exception
     {
         assertThat( 1 ).isEqualTo( 1 );
-        final File file = new File( System.getProperty( "user.home" ), "fastdirscan-testdata" );
+        final File file = new File( "src/test/testdata/perftestData" );
         System.out.println( "Warmup complete" );
         multiThreaded( file, 12 );
 
