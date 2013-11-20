@@ -102,9 +102,17 @@ public class BenchmarkTest
         try
         {
 			SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
-			final AtomicInteger recvd = new AtomicInteger( 0 );
 
 			ss.scan(ffr);
+
+			SmartScanner scanner = new SmartScanner(basedir, null, null, nThreads);
+
+			ss.scan(new SmartFileReceiver() {
+				@Override
+				public void accept(SmartFile file) {
+					// Do something
+				}
+			});
 
 			return ffr.recvd.get();
         }

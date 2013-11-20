@@ -34,6 +34,38 @@ I have no goal of retaining the *full* feature set and extension points of the o
 or the maven forks, but rather to base the final feature set on what appears to be the common use cases
 of this code.
 
+How to use
+#########
+
+Single threaded client
+-----------------------
+
+Everything the client sees stays on the client thread. As far as the user of this library is concerned,
+memory model behaviour is that of a single-threaded application. The iterator returned by SmartScanner is blocking
+and will return the first files immediately as they become available.
+
+    SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
+
+    for (SmartFile s : ss) {
+    		// do something
+    }
+
+
+Multithreaded client
+--------------------
+The scan method will be invoked in a multithreaded manner. Your code in the accept method
+has to be thread-safe
+
+    SmartScanner scanner = new SmartScanner(basedir, null, null, nThreads);
+
+    ss.scan(new SmartFileReceiver() {
+        @Override
+        public void accept(SmartFile file) {
+            // Do something
+        }
+    });
+
+
 
 Strategies
 -------
