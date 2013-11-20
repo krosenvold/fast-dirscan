@@ -82,9 +82,11 @@ The project aims to investigate different strategies, with slightly different im
 ![Multiple Reader Threads](images/MultipleReaderThreads.png)
 
 Pros:
+
 1. May be able to push IO subsystem further than the single-thread readers.
 
 Cons:
+
 1. May be difficult to determine optimal number of reader threads due to underlying device
   characteristics; creating a general purpose solution may prove hard.
 2. It might be necessary to create an alogorithm that needs to be tuned for each individual
