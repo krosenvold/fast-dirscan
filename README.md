@@ -35,7 +35,7 @@ or the maven forks, but rather to base the final feature set on what appears to 
 of this code.
 
 How to use
-#########
+==========
 
 Single threaded client
 -----------------------
@@ -70,43 +70,11 @@ has to be thread-safe
 Strategies
 -------
 
+The project has investigated different scanning strategies, only a few of which have turned out
+to be viable. There are a few other strategies that may still be explored.
+
+
 The project aims to investigate different strategies, with slightly different implications for client code. The main lines of investigations are as follows:
-
-### Forked single reader thread
-
-![Single Reader Thread Model](images/2Threads.png)
-
-Pros:
-
-1. Can provide client api's that match current api's fairly well.
-2. Zero memory model implications for calling application, everything significant happens
-   on client thread.
-
-Cons:
-
-1. Overall limits how the client code can be further optimized for threading, we're not just looking
-   at a faster way to scan files; but also how to push concurrency into the further processing.
-2. Initial latency for creating reader thread.
-3. Single reader IO thread may be too limited, does not push IO subsystem to full potential.
-
-Variations:
-
-1. Use multiple reader threads (see below for further discussion).
-
-
-### SingleReaderMultipleConsumers
-
-![Single Reader Multiple Consumers](images/SingleReaderMultipleConsumers.png)
-
-Pros:
-
-1. Provides an inherently concurrent API to the client, probably facilitating further
-   parallel processing in the client.
-
-Cons:
-
-1. Client must be concurrency-aware.
-
 
 ### Multiple reader threads
 
@@ -144,10 +112,47 @@ Variations:
 This last permutation is a combination of the above models; more than on thread reads the disk, and hands
 of to a different worker pool.
 
+Non-optimal strategies
+=====================
+These strategies have been tried but are simply not efficient enogh.
 
-How to work with this project
-=======
+### Forked single reader thread
 
-Create a directory "fastdirscan-testdata" in your home directory (~/fastdirscan-testdata).
+![Single Reader Thread Model](images/2Threads.png)
 
-Fill this directory with the files you want for benchmarking
+Pros:
+
+1. Can provide client api's that match current api's fairly well.
+2. Zero memory model implications for calling application, everything significant happens
+   on client thread.
+
+Cons:
+
+1. Overall limits how the client code can be further optimized for threading, we're not just looking
+   at a faster way to scan files; but also how to push concurrency into the further processing.
+2. Initial latency for creating reader thread.
+3. Single reader IO thread may be too limited, does not push IO subsystem to full potential.
+
+Variations:
+
+1. Use multiple reader threads (see below for further discussion).
+
+Why not:
+
+A single reader thread simply cannot push the required amount of IO to a modern SSD
+when it comes to directory scanning. A single reader with efficient distruptor-like handover
+to a second thread really only pushes 50% better than current single-thread algorith.
+
+### SingleReaderMultipleConsumers
+
+![Single Reader Multiple Consumers](images/SingleReaderMultipleConsumers.png)
+
+
+1. Provides an inherently concurrent API to the client, probably facilitating further
+   parallel processing in the client.
+
+Cons:
+
+1. Client must be concurrency-aware.
+
+Why not: See single reader above.
