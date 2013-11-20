@@ -83,7 +83,7 @@ The project aims to investigate different strategies, with slightly different im
 
 Pros:
 
-1. May be able to push IO subsystem further than the single-thread readers.
+1. Pushes IO subsystem way further than the single-thread readers.
 
 Cons:
 
@@ -92,7 +92,7 @@ Cons:
 2. It might be necessary to create an alogorithm that needs to be tuned for each individual
    system to achieve optimal performance.
 
-### Multiple Readers With Single Worker Each
+### Multiple Readers With Single Worker Each (Not implemented)
 
 ![Multiple Reader Threads With 1 worker for each](images/MultipleReadersWithSingleWorkerEach.png)
 
@@ -104,16 +104,18 @@ Pros:
 
 Cons:
 
-1. Same as for all multiple reader thread strategies.
+1. Handoff may prove to add little value and only create hot air.
+2. Same as for all multiple reader thread strategies.
 
 Variations:
 
-1. Multiple worker threads per single reader thread.
+1. Multiple worker threads per single reader thread. (Not Implemented)
 
-### 2 Thread pools: Multiple Readers, multiple workers.
+### 2 Thread pools: Multiple Readers, multiple workers. (Not implemented)
 
 This last permutation is a combination of the above models; more than on thread reads the disk, and hands
-of to a different worker pool.
+of to a different worker pool. This probably has little impact in terms of scanning performance,
+but might be beneficial when more threads are required for post processing than for scanning.
 
 Non-optimal strategies
 =====================
