@@ -58,7 +58,7 @@ has to be thread-safe
 
     SmartScanner scanner = new SmartScanner(basedir, null, null, nThreads);
 
-    ss.scan(new SmartFileReceiver() { // scan blocks until everything is complete. This is still open to change :)
+    ss.scan(new SmartFileReceiver() { // scan blocks until everything is complete. This might change :)
         @Override
         public void accept(SmartFile file) {
             // Do something
