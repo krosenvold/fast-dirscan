@@ -77,7 +77,7 @@ to be viable. There are a few other strategies that may still be explored.
 
 The project aims to investigate different strategies, with slightly different implications for client code. The main lines of investigations are as follows:
 
-### Multiple reader threads
+### Multiple reader threads (implemented)
 
 ![Multiple Reader Threads](images/MultipleReaderThreads.png)
 
