@@ -53,17 +53,18 @@ and will return the first files immediately as they become available.
 
 Multithreaded client
 --------------------
-The scan method will be invoked in a multithreaded manner. Your code in the accept method
+The scan method will invoked the callbak in a multithreaded manner. Your code in the accept method
 has to be thread-safe
 
     SmartScanner scanner = new SmartScanner(basedir, null, null, nThreads);
 
-    ss.scan(new SmartFileReceiver() {
+    ss.scan(new SmartFileReceiver() { // The call to scan blocks until everything is complete. This is still open to change :)
         @Override
         public void accept(SmartFile file) {
             // Do something
         }
     });
+
 
 
 
