@@ -115,8 +115,7 @@ public class Filters
         return false;
     }
 
-    public static @Nonnull
-	Filters from( String... sources )
+    @Nonnull public static Filters from( String... sources )
     {
         final int length = sources.length;
         Filter[] result = new Filter[length];
