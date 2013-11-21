@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
  * @author Kristian Rosenvold
  */
 @ThreadSafe
-public class MatchPattern
+public class Filter
 {
     @Nonnull
     private final String source;
@@ -44,7 +44,7 @@ public class MatchPattern
     @Nonnull
     private final char[][] tokenizedChar;
 
-    private MatchPattern( @Nonnull String source, @Nonnull String separator )
+	public Filter(@Nonnull String source)
     {
         //noinspection AssignmentToNull
         String regexPatternStr = SelectorUtils.isRegexPrefixedPattern( source ) ? source.substring(
@@ -58,14 +58,14 @@ public class MatchPattern
                 : source;
         //noinspection HardcodedFileSeparator
         String altStr = source.replace( '\\', '/' );
-        tokenizedChar = tokenizePathToCharArray( this.source, separator );
+        tokenizedChar = tokenizePathToCharArray( this.source, File.separator );
     }
 
 
-    private static boolean separatorPatternStartSlashMismatch( MatchPattern matchPattern, char[][] vpath, char separator )
+    private static boolean separatorPatternStartSlashMismatch( Filter filter, char[][] vpath, char separator )
     {
         boolean vpathStartsWithSeparator = vpath[0][0] == separator;
-        boolean matchPatternStartsWithSeparator = matchPattern.startsWith( separator );
+        boolean matchPatternStartsWithSeparator = filter.startsWith( separator );
         return vpath.length > 0 && vpathStartsWithSeparator != matchPatternStartsWithSeparator;
     }
 
@@ -97,7 +97,7 @@ public class MatchPattern
         }
     }
 
-    static boolean matchAntPathPatternStart( MatchPattern pattern, char[][] vpath, char separator,
+    private static boolean matchAntPathPatternStart( Filter pattern, char[][] vpath, char separator,
                                              boolean isCaseSensitive )
     {
 
@@ -109,12 +109,12 @@ public class MatchPattern
         return SelectorUtils.matchAntPathPatternStart( pattern.tokenizedChar, vpath, isCaseSensitive );
     }
 
-    public boolean startsWith( char thechar )
+    private boolean startsWith( char thechar )
     {
         return !source.isEmpty() && source.charAt( 0 ) == thechar;
     }
 
-    public static char[][] tokenizePathToCharArray( String source, String separator )
+    private static char[][] tokenizePathToCharArray( String source, String separator )
     {
         String[] tokenized = SelectorUtils.tokenizePathToString( source, separator );
         char[][] tokenizedChar = new char[tokenized.length][];
@@ -125,12 +125,8 @@ public class MatchPattern
         return tokenizedChar;
     }
 
-    public static MatchPattern fromString( String source )
-    {
-        return new MatchPattern( source, File.separator );
-    }
 
-    public boolean usesRegex()
+    boolean usesRegex()
     {
         return regexPattern != null;
     }

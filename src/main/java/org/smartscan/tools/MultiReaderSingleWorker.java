@@ -16,8 +16,8 @@ public class MultiReaderSingleWorker implements Iterator<SmartFile>
 
     private final LinkedTransferQueue<SmartFile> queue;
 
-	public MultiReaderSingleWorker( @Nonnull File basedir, @Nonnull MatchPatterns includes,
-									@Nonnull MatchPatterns excludes, int nThreads )
+	public MultiReaderSingleWorker( @Nonnull File basedir, @Nonnull Filters includes,
+									@Nonnull Filters excludes, int nThreads )
 			throws InterruptedException
 	{
 		queue = new LinkedTransferQueue<>();

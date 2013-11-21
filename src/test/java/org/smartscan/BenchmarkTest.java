@@ -27,9 +27,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.smartscan.api.SmartFile;
 import org.smartscan.api.SmartFileReceiver;
-import org.smartscan.tools.MatchPatterns;
-import org.smartscan.tools.MultiReader;
-import org.smartscan.tools.MultiReaderSingleWorker;
 
 import static org.fest.assertions.api.Assertions.*;
 

@@ -29,7 +29,7 @@ public class MultiReader
 
  //   private final AtomicBoolean completed = new AtomicBoolean( false );
 
-	public MultiReader( File basedir, MatchPatterns includes, MatchPatterns excludes, SmartFileReceiver smartFileReceiver,
+	public MultiReader( File basedir, Filters includes, Filters excludes, SmartFileReceiver smartFileReceiver,
 						int nThreads )
 	{
 		super( basedir, includes, excludes );

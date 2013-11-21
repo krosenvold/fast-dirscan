@@ -31,18 +31,18 @@ import java.util.List;
  * @author Kristian Rosenvold
  */
 @ThreadSafe
-public class MatchPatterns
+public class Filters
 {
 
-    private final MatchPattern[] antPatterns;
+    private final Filter[] antPatterns;
 
-    private final MatchPattern[] regexPatterns;
+    private final Filter[] regexPatterns;
 
-    private MatchPatterns( MatchPattern... antPatterns )
+    public Filters(Filter... antPatterns)
     {
-        List<MatchPattern> ant = new ArrayList<>( antPatterns.length );
-        List<MatchPattern> regex = new ArrayList<>( antPatterns.length );
-        for ( MatchPattern pattern : antPatterns )
+        List<Filter> ant = new ArrayList<>( antPatterns.length );
+        List<Filter> regex = new ArrayList<>( antPatterns.length );
+        for ( Filter pattern : antPatterns )
         {
             if ( pattern.usesRegex() )
             {
@@ -54,14 +54,14 @@ public class MatchPatterns
             }
         }
 
-        this.antPatterns = ant.toArray( new MatchPattern[ant.size()] );
-        regexPatterns = regex.toArray( new MatchPattern[regex.size()] );
+        this.antPatterns = ant.toArray( new Filter[ant.size()] );
+        regexPatterns = regex.toArray( new Filter[regex.size()] );
     }
 
 
     public boolean matches( char[][] tokenizedVpath, boolean isCaseSensitive )
     {
-        for ( MatchPattern pattern : antPatterns )
+        for ( Filter pattern : antPatterns )
         {
             if ( pattern.matchAntPath( tokenizedVpath, isCaseSensitive ) )
             {
@@ -77,7 +77,7 @@ public class MatchPatterns
                 vpathB.append( File.separatorChar );
             }
             String vpath2 = vpathB.toString();
-            for ( MatchPattern pattern : regexPatterns )
+            for ( Filter pattern : regexPatterns )
             {
                 if ( pattern.matchRegexPath( vpath2 ) )
                 {
@@ -105,7 +105,7 @@ public class MatchPatterns
         {
             return true;
         }
-        for ( MatchPattern includesPattern : antPatterns )
+        for ( Filter includesPattern : antPatterns )
         {
             if ( includesPattern.matchPatternStart( tokenizedVpath, isCaseSensitive ) )
             {
@@ -116,15 +116,15 @@ public class MatchPatterns
     }
 
     public static @Nonnull
-	MatchPatterns from( String... sources )
+	Filters from( String... sources )
     {
         final int length = sources.length;
-        MatchPattern[] result = new MatchPattern[length];
+        Filter[] result = new Filter[length];
         for ( int i = 0; i < length; i++ )
         {
-            result[i] = MatchPattern.fromString( sources[i] );
+            result[i] = new Filter(sources[i]);
         }
-        return new MatchPatterns( result );
+        return new Filters( result );
     }
 
 }

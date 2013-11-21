@@ -1,18 +1,15 @@
 package org.smartscan.tools;
 
 
-import org.smartscan.tools.MatchPatterns;
-import org.smartscan.tools.ScannerTools;
-
 import java.io.File;
 
 public class ModernBase
 {
     protected final File basedir;
 
-    protected final MatchPatterns includesPatterns;
+    protected final Filters includesPatterns;
 
-    protected final MatchPatterns excludesPatterns;
+    protected final Filters excludesPatterns;
 
     public static final String POISON = "*POISON*";
 
@@ -26,11 +23,11 @@ public class ModernBase
     public ModernBase( File basedir, String[] includes, String[] excludes )
     {
         this.basedir = basedir;
-        includesPatterns = MatchPatterns.from( ScannerTools.getIncludes( includes ) );
-        excludesPatterns = MatchPatterns.from( ScannerTools.getExcludes( excludes ) );
+        includesPatterns = Filters.from(ScannerTools.getIncludes(includes));
+        excludesPatterns = Filters.from(ScannerTools.getExcludes(excludes));
     }
 
-	protected ModernBase( File basedir, MatchPatterns includes, MatchPatterns excludes )
+	protected ModernBase( File basedir, Filters includes, Filters excludes )
 	{
 		this.basedir = basedir;
 		includesPatterns =  includes ;
