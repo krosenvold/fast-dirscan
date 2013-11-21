@@ -102,15 +102,6 @@ public class BenchmarkTest
 
 			ss.scan(ffr);
 
-			SmartScanner scanner = new SmartScanner(basedir, null, null, nThreads);
-
-			ss.scan(new SmartFileReceiver() {
-				@Override
-				public void accept(SmartFile file) {
-					// Do something
-				}
-			});
-
 			return ffr.recvd.get();
         }
         finally

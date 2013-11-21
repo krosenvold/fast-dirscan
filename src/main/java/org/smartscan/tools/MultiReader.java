@@ -21,13 +21,9 @@ public class MultiReader
 
     public static final char[][] NO_FILES_VPATH_ = new char[0][];
 
-  //  private final AtomicInteger threadsStarted = new AtomicInteger( 1 );
-
     private final ForkJoinPool executor;
 
     private final SmartFileReceiver smartFileReceiver;
-
- //   private final AtomicBoolean completed = new AtomicBoolean( false );
 
 	public MultiReader( File basedir, Filters includes, Filters excludes, SmartFileReceiver smartFileReceiver,
 						int nThreads )
