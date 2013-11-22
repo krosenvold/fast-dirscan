@@ -16,4 +16,6 @@ public interface SmartFile extends Comparable {
     String getVpath();
 
 	File[] listFiles();
+
+	char[] getFileNameChar();
 }

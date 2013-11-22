@@ -26,14 +26,16 @@ public class Java7SmartFile implements SmartFile {
     private BasicFileAttributes basicFileAttributes;
     private final File file;
 
-    private final char[][] fileName;
+    private final char[][] parentVpath;
+	private final char[] fileNameChar;
 
     private Java7SmartFile(File file, char[][] parentVpath)
     {
         this.file = file;
 		//noinspection AssignmentToCollectionOrArrayFieldFromParameter
-		fileName = parentVpath;
+		this.parentVpath = parentVpath;
 		this.basicFileAttributes = getBasicFileAttributes(file);
+		this.fileNameChar = file.getName().toCharArray();
     }
 
 	public static SmartFile createSmartFile(File file, char[][] parentVpath) {
@@ -71,7 +73,7 @@ public class Java7SmartFile implements SmartFile {
 
     public String getVpath(){
         StringBuilder result = new StringBuilder();
-        for (char[] chars : fileName) {
+        for (char[] chars : parentVpath) {
             result.append(chars);
             result.append(File.separatorChar);
         }
@@ -93,5 +95,9 @@ public class Java7SmartFile implements SmartFile {
 	@Override
 	public File[] listFiles() {
 		return file.listFiles();
+	}
+
+	public char[] getFileNameChar() {
+		return fileNameChar;
 	}
 }
