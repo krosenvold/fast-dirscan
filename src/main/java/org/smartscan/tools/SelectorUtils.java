@@ -19,10 +19,6 @@
 
 package org.smartscan.tools;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
-
 public final class SelectorUtils
 {
 
@@ -230,6 +226,11 @@ public final class SelectorUtils
         return match( pattern, str, true );
     }
 
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
     /**
      * Tests whether or not a string matches against a pattern.
      * The pattern may contain two special characters:<br>
@@ -421,52 +422,6 @@ public final class SelectorUtils
             }
         }
         return false;
-    }
-
-    public static String[] tokenizePathToString( String path, String separator )
-    {
-        List<String> ret = new ArrayList<>();
-        StringTokenizer st = new StringTokenizer( path, separator );
-        while ( st.hasMoreTokens() )
-        {
-            ret.add( st.nextToken() );
-        }
-        return ret.toArray( new String[ret.size()] );
-    }
-
-    public static char[][] tokenizePathToCharArray( String path, char separator, int additional )
-    {
-        char[] pathCHar = path.toCharArray();
-        int pathLen = pathCHar.length;
-        int cnt = 0;
-        for ( char aPathCHar : pathCHar )
-        {
-            if ( aPathCHar == separator )
-            {
-                cnt++;
-            }
-        }
-        cnt++;
-        List<char[]> result = new ArrayList<>(cnt);
-
-        for ( int i = 0; i < pathLen; i++ )
-        {
-            int j = i;
-            int len = 0;
-            while ( j < pathLen && pathCHar[ j ] != separator )
-            {
-                len++;
-                j++;
-            }
-            if ( len > 0 )
-            {
-                char[] outp = new char[len];
-                System.arraycopy( pathCHar, i, outp, 0, len );
-                result.add( outp );
-                i += len;
-            }
-        }
-        return result.toArray( new char[result.size() +additional][] );
     }
 
 

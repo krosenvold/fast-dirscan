@@ -2,6 +2,7 @@ package org.smartscan;
 
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.junit.Test;
+import org.smartscan.api.Java7SmartFile;
 import org.smartscan.api.SmartFile;
 
 import java.io.File;

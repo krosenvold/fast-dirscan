@@ -40,8 +40,8 @@ public class Filters
 
     public Filters(Filter... antPatterns)
     {
-        List<Filter> ant = new ArrayList<>( antPatterns.length );
-        List<Filter> regex = new ArrayList<>( antPatterns.length );
+        List<Filter> ant = new ArrayList<Filter>( antPatterns.length );
+        List<Filter> regex = new ArrayList<Filter>( antPatterns.length );
         for ( Filter pattern : antPatterns )
         {
             if ( pattern.usesRegex() )

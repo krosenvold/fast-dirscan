@@ -23,6 +23,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 /**
@@ -58,7 +61,7 @@ public class Filter
                 : source;
         //noinspection HardcodedFileSeparator
         String altStr = source.replace( '\\', '/' );
-        tokenizedChar = tokenizePathToCharArray( this.source, File.separator );
+        tokenizedChar = tokenizePathToCharArray( this.source, File.separatorChar );
     }
 
 
@@ -114,15 +117,9 @@ public class Filter
         return !source.isEmpty() && source.charAt( 0 ) == thechar;
     }
 
-    private static char[][] tokenizePathToCharArray( String source, String separator )
+    static char[][] tokenizePathToCharArray( String source, char separator )
     {
-        String[] tokenized = SelectorUtils.tokenizePathToString( source, separator );
-        char[][] tokenizedChar = new char[tokenized.length][];
-        for ( int i = 0; i < tokenized.length; i++ )
-        {
-            tokenizedChar[i] = tokenized[i].toCharArray();
-        }
-        return tokenizedChar;
+        return tokenizePathToCharArray( source, separator, 0);
     }
 
 
@@ -130,5 +127,41 @@ public class Filter
     {
         return regexPattern != null;
     }
+
+    public static char[][] tokenizePathToCharArray( String path, char separator, int additional )
+    {
+        char[] pathCHar = path.toCharArray();
+        int pathLen = pathCHar.length;
+        int cnt = 0;
+        for ( char aPathCHar : pathCHar )
+        {
+            if ( aPathCHar == separator )
+            {
+                cnt++;
+            }
+        }
+        cnt++;
+        List<char[]> result = new ArrayList<char[]>(cnt);
+
+        for ( int i = 0; i < pathLen; i++ )
+        {
+            int j = i;
+            int len = 0;
+            while ( j < pathLen && pathCHar[ j ] != separator )
+            {
+                len++;
+                j++;
+            }
+            if ( len > 0 )
+            {
+                char[] outp = new char[len];
+                System.arraycopy( pathCHar, i, outp, 0, len );
+                result.add( outp );
+                i += len;
+            }
+        }
+        return result.toArray( new char[result.size() +additional][] );
+    }
+
 
 }

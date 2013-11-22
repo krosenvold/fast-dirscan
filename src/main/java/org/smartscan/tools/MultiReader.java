@@ -1,7 +1,7 @@
 package org.smartscan.tools;
 
 
-import org.smartscan.api.SmartFile;
+import org.smartscan.api.Java7SmartFile;
 import org.smartscan.api.SmartFileReceiver;
 
 import javax.annotation.Nullable;
@@ -96,7 +96,7 @@ public class MultiReader
                     {
                         if ( shouldInclude )
                         {
-                            smartFileReceiver.accept(SmartFile.createSmartFile(file, unmodifyableparentvpath, basicFileAttributes));
+                            smartFileReceiver.accept(Java7SmartFile.createSmartFile(file, unmodifyableparentvpath, basicFileAttributes));
                         }
                     }
                     else if ( basicFileAttributes.isDirectory() )

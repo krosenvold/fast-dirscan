@@ -20,7 +20,7 @@ public class MultiReaderSingleWorker implements Iterator<SmartFile>
 									@Nonnull Filters excludes, int nThreads )
 			throws InterruptedException
 	{
-		queue = new LinkedTransferQueue<>();
+		queue = new LinkedTransferQueue<SmartFile>();
 		reader = new MultiReader( basedir, includes, excludes, getFastFileReceiver(), nThreads );
 		reader.beginThreadedScan();
 	}
@@ -37,6 +37,7 @@ public class MultiReaderSingleWorker implements Iterator<SmartFile>
         };
     }
 
+	@Override
 	@SuppressWarnings("StatementWithEmptyBody")
 	public boolean hasNext() {
 			while ( !reader.isComplete()  && queue.peek() == null ){
