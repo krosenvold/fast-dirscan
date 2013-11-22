@@ -25,11 +25,8 @@ public class ScanCache {
 		}
 		return result;
 	}
-	public SmartFile[] createSmartFiles(SmartFile dir, char[][] unmodifyableparentvpath) {
-		return createSmartFiles(dir.listFiles(), unmodifyableparentvpath);
+	public SmartFile[] createSmartFiles(SmartFile dir, char[][] dirvpath) {
+		return createSmartFiles(dir.listFiles(), dirvpath);
 	}
 
-	SmartFile[] getCachedFiles(SmartFile dir){
-		return createSmartFiles(dir, dir.getParentVpath());
-	}
 }
