@@ -82,9 +82,8 @@ public class CachingMultiReader
 
             if ( newfiles != null )
             {
-				final SmartFile[] smartFiles = createSmartFiles(newfiles, unmodifyableparentvpath);
 				char[][] mutablevpath = copyWithOneExtra(unmodifyableparentvpath);
-				for (final SmartFile smartFile : smartFiles) {
+				for (final SmartFile smartFile : createSmartFiles(newfiles, unmodifyableparentvpath)) {
 					mutablevpath[mutablevpath.length - 1] = smartFile.getFileNameChar();
 
                     boolean shouldInclude = shouldInclude( mutablevpath );
