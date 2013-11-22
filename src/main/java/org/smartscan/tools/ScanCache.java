@@ -25,7 +25,7 @@ public class ScanCache {
 		}
 		return result;
 	}
-	private static SmartFile[] createSmartFiles(SmartFile dir, char[][] unmodifyableparentvpath) {
+	public SmartFile[] createSmartFiles(SmartFile dir, char[][] unmodifyableparentvpath) {
 		return createSmartFiles(dir.listFiles(), unmodifyableparentvpath);
 	}
 

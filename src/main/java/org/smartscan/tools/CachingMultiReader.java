@@ -70,9 +70,7 @@ public class CachingMultiReader
 			firstDir = null; firstVpath = null;
 			char[][] mutablevpath = copyWithOneExtra(unmodifyableparentvpath);
 			final int vpathIdx = mutablevpath.length - 1;
-			File[] newfiles = parent.listFiles();
-			if (newfiles == null) return;
-			SmartFile[] smartFiles = ScanCache.createSmartFiles(newfiles, unmodifyableparentvpath);
+			SmartFile[] smartFiles = scanCache.createSmartFiles(parent, unmodifyableparentvpath);
 			for (final SmartFile smartFile : smartFiles) {
 				mutablevpath[vpathIdx] = smartFile.getFileNameChar();
 
