@@ -175,7 +175,7 @@ public class DirectoryScannerTest {
 
 
         SimpleListReceiver receiver = new SimpleListReceiver();
-        ds.scan(receiver);
+        ds.scan2(receiver);
 
         checkFiles("expectedIncludedFiles", expectedIncludedFiles, receiver.getResult());
         //     checkFiles( "expectedIncludedDirectories", expectedIncludedDirectories, ds.getIncludedDirectories() );

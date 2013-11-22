@@ -2,10 +2,7 @@ package org.smartscan;
 
 import org.smartscan.api.SmartFile;
 import org.smartscan.api.SmartFileReceiver;
-import org.smartscan.tools.Filters;
-import org.smartscan.tools.MultiReader;
-import org.smartscan.tools.MultiReaderSingleWorker;
-import org.smartscan.tools.ScannerTools;
+import org.smartscan.tools.*;
 
 import java.io.File;
 import java.util.Iterator;
@@ -29,6 +26,12 @@ public class SmartScanner implements Iterable<SmartFile> {
 
 	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {
 		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
+		multiReader.beginThreadedScan();
+		multiReader.awaitCompletion();
+	}
+
+	public void scan2(SmartFileReceiver smartFileReceiver) throws InterruptedException {
+		CachingMultiReader multiReader = new CachingMultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}

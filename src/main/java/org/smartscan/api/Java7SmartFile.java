@@ -18,10 +18,12 @@
  */package org.smartscan.api;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public class Java7SmartFile implements SmartFile {
-    private static BasicFileAttributes basicFileAttributes;
+    private BasicFileAttributes basicFileAttributes;
     private final File file;
 
     private final char[][] fileName;
@@ -31,15 +33,28 @@ public class Java7SmartFile implements SmartFile {
         this.file = file;
 		//noinspection AssignmentToCollectionOrArrayFieldFromParameter
 		fileName = parentVpath;
+		this.basicFileAttributes = getBasicFileAttributes(file);
     }
 
-	public static SmartFile createSmartFile(File file, char[][] parentVpath, BasicFileAttributes basicFileAttributes) {
-        Java7SmartFile.basicFileAttributes = basicFileAttributes;
+	public static SmartFile createSmartFile(File file, char[][] parentVpath) {
         return new Java7SmartFile(file, parentVpath);
 	}
 
+	private static BasicFileAttributes getBasicFileAttributes(File file) {
+		BasicFileAttributes basicFileAttributes;
+		try
+		{
+			basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+		}
+		catch ( IOException e )
+		{
+			throw new RuntimeException(e);
+		}
+		return basicFileAttributes;
+	}
 
-    @Override
+
+	@Override
     public boolean isFile() {
         return basicFileAttributes.isRegularFile();
     }
@@ -74,4 +89,9 @@ public class Java7SmartFile implements SmartFile {
     public String toString() {
         return getVpath();
     }
+
+	@Override
+	public File[] listFiles() {
+		return file.listFiles();
+	}
 }

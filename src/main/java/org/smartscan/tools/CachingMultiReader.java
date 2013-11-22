@@ -2,6 +2,7 @@ package org.smartscan.tools;
 
 
 import org.smartscan.api.Java7SmartFile;
+import org.smartscan.api.SmartFile;
 import org.smartscan.api.SmartFileReceiver;
 
 import javax.annotation.Nullable;
@@ -15,7 +16,7 @@ import java.util.concurrent.RecursiveAction;
 /**
  * Reads with multiple threads
  */
-public class MultiReader
+public class CachingMultiReader
     extends ModernBase
 {
 
@@ -25,13 +26,16 @@ public class MultiReader
 
     private final SmartFileReceiver smartFileReceiver;
 
-	public MultiReader( File basedir, Filters includes, Filters excludes, SmartFileReceiver smartFileReceiver,
-						int nThreads )
+	private final ScanCache scanCache;
+
+	public CachingMultiReader(File basedir, Filters includes, Filters excludes, SmartFileReceiver smartFileReceiver,
+							  int nThreads)
 	{
 		super( basedir, includes, excludes );
 		ScannerTools.verifyBaseDir( basedir );
 		executor = new ForkJoinPool( nThreads );
 		this.smartFileReceiver = smartFileReceiver;
+		scanCache = new ScanCache();
 	}
 
 	public boolean isComplete(){
@@ -57,7 +61,7 @@ public class MultiReader
             @Override
             public void run()
             {
-				scandir(basedir, NO_FILES_VPATH_);
+				scandir(Java7SmartFile.createSmartFile(basedir, NO_FILES_VPATH_), NO_FILES_VPATH_);
 			}
         };
         executor.submit(scanner);
@@ -65,9 +69,9 @@ public class MultiReader
 
 
 	@SuppressWarnings( "AssignmentToMethodParameter" )
-    private void scandir( File parent, char[][] unmodifyableparentvpath )
+    private void scandir( SmartFile parent, char[][] unmodifyableparentvpath )
     {
-        @Nullable File firstDir;
+        @Nullable SmartFile firstDir;
         @Nullable char[][] firstVpath;
         do
         {
@@ -78,34 +82,26 @@ public class MultiReader
 
             if ( newfiles != null )
             {
-                char[][] mutablevpath = copyWithOneExtra( unmodifyableparentvpath );
-                for ( final File file : newfiles )
-                {
-                    mutablevpath[mutablevpath.length - 1] = file.getName().toCharArray();
-                    BasicFileAttributes basicFileAttributes;
-                    try
-                    {
-                        basicFileAttributes = Files.readAttributes( file.toPath(), BasicFileAttributes.class );
-                    }
-                    catch ( IOException e )
-                    {
-						throw new RuntimeException(e);
-                    }
+				final SmartFile[] smartFiles = createSmartFiles(newfiles, unmodifyableparentvpath);
+				char[][] mutablevpath = copyWithOneExtra(unmodifyableparentvpath);
+				for (final SmartFile smartFile : smartFiles) {
+					mutablevpath[mutablevpath.length - 1] = smartFile.getFile().getName().toCharArray();
+
                     boolean shouldInclude = shouldInclude( mutablevpath );
-                    if ( basicFileAttributes.isRegularFile() )
+                    if ( smartFile.isFile() )
                     {
                         if ( shouldInclude )
                         {
-                            smartFileReceiver.accept(Java7SmartFile.createSmartFile(file, unmodifyableparentvpath));
+                            smartFileReceiver.accept(smartFile);
                         }
                     }
-                    else if ( basicFileAttributes.isDirectory() )
+                    else if ( smartFile.isDirectory() )
                     {
                         if ( shouldInclude || couldHoldIncluded( mutablevpath ) )
                         {
                             if ( firstDir == null )
                             {
-                                firstDir = file;
+                                firstDir = smartFile;
                                 firstVpath = copy( mutablevpath );
                             }
                             else
@@ -114,7 +110,7 @@ public class MultiReader
 								new RecursiveAction() {
 									@Override
 									protected void compute() {
-										scandir(file, copy);
+										scandir(smartFile, copy);
 									}
 								}.fork();
 								// Todo: fix swallowed exceptions
@@ -128,4 +124,16 @@ public class MultiReader
         }
         while ( firstDir != null );
     }
+
+	private static SmartFile[] createSmartFiles(File[] files, char[][] unmodifyableparentvpath){
+
+		final int length = files.length;
+		SmartFile[] result = new SmartFile[length];
+
+		for (int i = 0; i < length; i++)
+		{
+			result[i] = Java7SmartFile.createSmartFile(files[i], unmodifyableparentvpath);
+		}
+		return result;
+	}
 }

@@ -53,6 +53,7 @@ public class BenchmarkTest
 			assertThat( multiThreaded( file, 10 ) ).as( "mr" ).isEqualTo( expected  );
             assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected  );
 			assertThat( multiThreaded(file, 16) ).as( "mr" ).isEqualTo( expected);
+			assertThat( cachingMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
             System.out.println( "" );
         }
 
@@ -109,6 +110,25 @@ public class BenchmarkTest
             System.out.print( ", MR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
         }
     }
+
+	private static int cachingMultiThreaded( File basedir, int nThreads )
+			throws InterruptedException
+	{
+		long milliStart = System.currentTimeMillis();
+		ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+		try
+		{
+			SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
+
+			ss.scan2(ffr);
+
+			return ffr.recvd.get();
+		}
+		finally
+		{
+			System.out.print( ", CMR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+		}
+	}
 
     static class ConcurrentFileReceiver
         implements SmartFileReceiver

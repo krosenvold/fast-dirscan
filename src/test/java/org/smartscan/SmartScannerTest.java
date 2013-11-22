@@ -4,6 +4,7 @@ import org.codehaus.plexus.util.DirectoryScanner;
 import org.junit.Test;
 import org.smartscan.api.Java7SmartFile;
 import org.smartscan.api.SmartFile;
+import org.smartscan.api.SmartFileReceiver;
 
 import java.io.File;
 
@@ -37,9 +38,22 @@ public class SmartScannerTest {
 		int cnt = 0;
 		for (SmartFile sf : ss) {
 			cnt++;
-			System.out.println("ss.getFile() = " + sf.getFile().getPath());
+			System.out.println("ssA.getFile() = " + sf.getFile().getPath());
 		}
 		assertEquals(reference.length, cnt);
+
+	}
+
+	@Test
+	public void shouldShowCorrectElementsOtherDir2() throws InterruptedException {
+		File basedir = new File("src/test/resources/directorywalker");
+		SmartScanner ss = new SmartScanner(basedir, null,null ,2);
+		ss.scan2(new SmartFileReceiver() {
+			@Override
+			public void accept(SmartFile file) {
+				System.out.println("ssB.getFile() = " + file.getFile().getPath());
+			}
+		});
 
 	}
 
