@@ -7,9 +7,6 @@ import org.smartscan.api.SmartFileReceiver;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
@@ -20,6 +17,7 @@ public class CachingMultiReader
 		extends ModernBase {
 
 	public static final char[][] NO_FILES_VPATH_ = new char[0][];
+	public static final SmartFile[] NO_SMARTFILES = new SmartFile[0];
 
 	private final ForkJoinPool executor;
 
@@ -70,11 +68,12 @@ public class CachingMultiReader
 		@Nullable char[][] firstVpath;
 		do {
 			firstDir = null; firstVpath = null;
-			File[] newfiles = parent.listFiles();
-			if (newfiles == null) return;
 			char[][] mutablevpath = copyWithOneExtra(unmodifyableparentvpath);
 			final int vpathIdx = mutablevpath.length - 1;
-			for (final SmartFile smartFile : createSmartFiles(newfiles, unmodifyableparentvpath)) {
+			File[] newfiles = parent.listFiles();
+			if (newfiles == null) return;
+			SmartFile[] smartFiles = ScanCache.createSmartFiles(newfiles, unmodifyableparentvpath);
+			for (final SmartFile smartFile : smartFiles) {
 				mutablevpath[vpathIdx] = smartFile.getFileNameChar();
 
 				boolean shouldInclude = shouldInclude(mutablevpath);
@@ -108,6 +107,8 @@ public class CachingMultiReader
 
 	private static SmartFile[] createSmartFiles(File[] files, char[][] unmodifyableparentvpath) {
 
+		if (files == null) return NO_SMARTFILES;
+
 		final int length = files.length;
 		SmartFile[] result = new SmartFile[length];
 
@@ -116,4 +117,8 @@ public class CachingMultiReader
 		}
 		return result;
 	}
+	private static SmartFile[] createSmartFiles(SmartFile dir, char[][] unmodifyableparentvpath) {
+		return createSmartFiles(dir.listFiles(), unmodifyableparentvpath);
+	}
+
 }

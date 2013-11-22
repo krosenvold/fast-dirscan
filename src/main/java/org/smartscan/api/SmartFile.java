@@ -18,4 +18,6 @@ public interface SmartFile extends Comparable {
 	File[] listFiles();
 
 	char[] getFileNameChar();
+
+	char[][] getParentVpath();
 }

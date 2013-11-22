@@ -100,4 +100,9 @@ public class Java7SmartFile implements SmartFile {
 	public char[] getFileNameChar() {
 		return fileNameChar;
 	}
+
+	@Override
+	public char[][] getParentVpath() {
+		return parentVpath;
+	}
 }
