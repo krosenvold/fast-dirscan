@@ -20,23 +20,27 @@ public class ScanCache {
 	private final File baseDir;
 	private final Filters includes;
 	private final Filters excludes;
-	private final File cacheStore;
+	private final File cacheBaseDir;
 
 	public ScanCache(File basedir, Filters includes, Filters excludes, ConcurrentHashMap<SmartFile,SmartFile[]> cache) {
-		this( getCacheStore(), basedir, includes, excludes, cache);
+		this( getCacheBaseDir(), basedir, includes, excludes, cache);
 	}
 
 
-	private static File getCacheStore() {
-		return new File("target/testCache");
+	public static File getCacheBaseDir() {
+		return new File("target");
+	}
+
+	 static File getCacheFile(File baseDir) {
+		return new File(getCacheBaseDir(), "testCache_" + baseDir.getPath().replace(File.separatorChar, '_'));
 	}
 
 	public ScanCache(File baseDir, ConcurrentHashMap<SmartFile,SmartFile[]> cache) {
-		this(getCacheStore(), baseDir, null, null, cache);
+		this(getCacheBaseDir(), baseDir, null, null, cache);
 	}
 
-	private ScanCache(File cacheStore, File basedir, Filters includes, Filters excludes, ConcurrentHashMap<SmartFile,SmartFile[]> cache) {
-		this.cacheStore = cacheStore;
+	private ScanCache(File cacheBaseDir, File basedir, Filters includes, Filters excludes, ConcurrentHashMap<SmartFile,SmartFile[]> cache) {
+		this.cacheBaseDir = cacheBaseDir;
 		this.baseDir = basedir.getAbsoluteFile();
 		this.includes = includes;
 		this.excludes = excludes;
@@ -70,7 +74,7 @@ public class ScanCache {
 	}
 
 	public void writeTo() throws IOException {
-		FileWriter fw = new FileWriter(cacheStore);
+		FileWriter fw = new FileWriter(getCacheFile(baseDir));
 		fw.write(baseDir.getAbsolutePath());fw.write('\n');
 		fw.write(includes != null ? Integer.toString(includes.hashCode()) : "0");fw.write('\n');
 		fw.write(excludes != null ? Integer.toString(excludes.hashCode()): "0");fw.write('\n');
@@ -86,15 +90,16 @@ public class ScanCache {
 	}
 
 	public static ScanCache mavenDefault(File basedir, Filters includes, Filters excludes) {
-		if (getCacheStore().exists()) try {
-			return fromFile();
+		File cacheFile = getCacheFile(basedir);
+		if (cacheFile.exists()) try {
+			return fromFile(cacheFile);
 		} catch (IOException ignore) {
 		}
-		return new ScanCache(getCacheStore(), basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>());
+		return new ScanCache(getCacheBaseDir(), basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>());
 	}
 
-	public static ScanCache fromFile() throws IOException {
-		FileReader fr = new FileReader(getCacheStore());
+	public static ScanCache fromFile(File cacheStore1) throws IOException {
+		FileReader fr = new FileReader(cacheStore1);
 		BufferedReader br = new BufferedReader(fr);
 
 		ConcurrentHashMap<SmartFile,SmartFile[]> cache = new ConcurrentHashMap<SmartFile,SmartFile[]>();
