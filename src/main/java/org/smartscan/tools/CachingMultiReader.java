@@ -31,13 +31,14 @@ public class CachingMultiReader
 		ScannerTools.verifyBaseDir(basedir);
 		executor = new ForkJoinPool(nThreads);
 		this.smartFileReceiver = smartFileReceiver;
-		scanCache = new ScanCache();
+		scanCache = ScanCache.mavenDefault(basedir, includes, excludes);
 	}
 
 	public boolean isComplete() {
 		final boolean quiescent = executor.isQuiescent();
 		if (quiescent) {
 			executor.shutdown();
+			scanCache.close();
 		}
 		return quiescent;
 	}
@@ -48,6 +49,7 @@ public class CachingMultiReader
 			doSleep(1);
 		}
 		executor.shutdown();
+		scanCache.close();
 	}
 
 	public void beginThreadedScan()
@@ -55,7 +57,7 @@ public class CachingMultiReader
 		Runnable scanner = new Runnable() {
 			@Override
 			public void run() {
-				scandir(Java7SmartFile.createSmartFile(basedir, NO_FILES_VPATH_), NO_FILES_VPATH_);
+				scandir(Java7SmartFile.createRootDir(basedir), NO_FILES_VPATH_);
 			}
 		};
 		executor.submit(scanner);

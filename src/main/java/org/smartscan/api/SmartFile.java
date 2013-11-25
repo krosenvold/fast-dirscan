@@ -5,7 +5,7 @@ import java.io.File;
 /**
  * @author Kristian Rosenvold
  */
-public interface SmartFile extends Comparable {
+public interface SmartFile extends Comparable<SmartFile> {
 
     boolean isFile();
 
@@ -20,4 +20,11 @@ public interface SmartFile extends Comparable {
 	char[] getFileNameChar();
 
 	char[][] getParentVpath();
+
+	char[][] getVPathOfThis();
+
+	long lastModified();
+
+	String getPath();
+
 }

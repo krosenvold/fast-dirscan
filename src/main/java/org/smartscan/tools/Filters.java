@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -126,4 +127,23 @@ public class Filters
         return new Filters( result );
     }
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Filters filters = (Filters) o;
+
+		if (!Arrays.equals(antPatterns, filters.antPatterns)) return false;
+		if (!Arrays.equals(regexPatterns, filters.regexPatterns)) return false;
+
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = antPatterns != null ? Arrays.hashCode(antPatterns) : 0;
+		result = 31 * result + (regexPatterns != null ? Arrays.hashCode(regexPatterns) : 0);
+		return result;
+	}
 }

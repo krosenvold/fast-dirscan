@@ -1,9 +1,14 @@
 package org.smartscan.tools;
 
+import org.smartscan.api.CachedJava7SmartFile;
 import org.smartscan.api.Java7SmartFile;
 import org.smartscan.api.SmartFile;
 
-import java.io.File;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Kristian Rosenvold
@@ -12,10 +17,39 @@ public class ScanCache {
 
 	public static final SmartFile[] NO_SMARTFILES = new SmartFile[0];
 
+	private final File baseDir;
+	private final Filters includes;
+	private final Filters excludes;
+	private final File cacheStore;
 
-	public static SmartFile[] createSmartFiles(File[] files, char[][] unmodifyableparentvpath) {
+	public ScanCache(File basedir, Filters includes, Filters excludes, ConcurrentHashMap<SmartFile,SmartFile[]> cache) {
+		this( getCacheStore(), basedir, includes, excludes, cache);
+	}
 
-		if (files == null) return NO_SMARTFILES;
+
+	private static File getCacheStore() {
+		return new File("target/testCache");
+	}
+
+	public ScanCache(File baseDir, ConcurrentHashMap<SmartFile,SmartFile[]> cache) {
+		this(getCacheStore(), baseDir, null, null, cache);
+	}
+
+	private ScanCache(File cacheStore, File basedir, Filters includes, Filters excludes, ConcurrentHashMap<SmartFile,SmartFile[]> cache) {
+		this.cacheStore = cacheStore;
+		this.baseDir = basedir.getAbsoluteFile();
+		this.includes = includes;
+		this.excludes = excludes;
+		this.cache = cache;
+	}
+
+	private final ConcurrentHashMap<SmartFile,SmartFile[]> cache;
+
+	private static SmartFile[] createSmartFiles(File[] files, char[][] unmodifyableparentvpath) {
+
+		if (files == null) {
+			return NO_SMARTFILES;
+		}
 
 		final int length = files.length;
 		SmartFile[] result = new SmartFile[length];
@@ -26,7 +60,84 @@ public class ScanCache {
 		return result;
 	}
 	public SmartFile[] createSmartFiles(SmartFile dir, char[][] dirvpath) {
-		return createSmartFiles(dir.listFiles(), dirvpath);
+		final SmartFile[] smartFiles1 = cache.get(dir);
+		if (smartFiles1 != null){
+			return smartFiles1;
+		}
+		final SmartFile[] smartFiles = createSmartFiles(dir.listFiles(), dirvpath);
+		cache.put( dir, smartFiles);
+		return smartFiles;
 	}
 
+	public void writeTo() throws IOException {
+		FileWriter fw = new FileWriter(cacheStore);
+		fw.write(baseDir.getAbsolutePath());fw.write('\n');
+		fw.write(includes != null ? Integer.toString(includes.hashCode()) : "0");fw.write('\n');
+		fw.write(excludes != null ? Integer.toString(excludes.hashCode()): "0");fw.write('\n');
+
+		for (Map.Entry<SmartFile, SmartFile[]> smartFile : cache.entrySet()) {
+			CachedFile.writeDir(fw, smartFile.getKey());
+			for (SmartFile smartFile1 : smartFile.getValue()) {
+				CachedFile.writeDirEntry(fw, smartFile1);
+			}
+		}
+		fw.close();
+
+	}
+
+	public static ScanCache mavenDefault(File basedir, Filters includes, Filters excludes) {
+		if (getCacheStore().exists()) try {
+			return fromFile();
+		} catch (IOException ignore) {
+		}
+		return new ScanCache(getCacheStore(), basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>());
+	}
+
+	public static ScanCache fromFile() throws IOException {
+		FileReader fr = new FileReader(getCacheStore());
+		BufferedReader br = new BufferedReader(fr);
+
+		ConcurrentHashMap<SmartFile,SmartFile[]> cache = new ConcurrentHashMap<SmartFile,SmartFile[]>();
+
+		String basedir = br.readLine();
+		String inclHsah = br.readLine();
+		String exclHash = br.readLine();
+		String line;
+		SmartFile rootFile = null;
+		List<SmartFile> kids = new ArrayList<SmartFile>();
+		while ((line = br.readLine()) != null){
+			if (line.charAt(0) == 'D'){
+				int fileIdx = line.indexOf(' ', 2);
+				final String substring = line.substring(1, fileIdx);
+				long timeStamp = Long.parseLong(substring);
+				String path = line.substring( fileIdx +1);
+				if (rootFile != null){
+					cache.put( rootFile, kids.toArray(new SmartFile[kids.size()]));
+					kids.clear();
+				}
+				int lastDir = path.lastIndexOf(File.separatorChar);
+				String name = lastDir >= 0 ? path.substring( lastDir + 1): path;
+				String path1 = lastDir >= 0 ? path.substring(0, lastDir) : "";
+
+				rootFile = CachedJava7SmartFile.createCachedSmartDir(basedir, path1, name, timeStamp);
+			} else {
+			 char type = line.charAt(1);
+				String fn = line.substring(3);
+				kids.add(CachedJava7SmartFile.createCachedSmartFile(basedir, rootFile.getVpath(), fn, type));
+			}
+		}
+		if (rootFile != null){
+			cache.put( rootFile, kids.toArray(new SmartFile[kids.size()]));
+			kids.clear();
+		}
+		return new ScanCache(new File(basedir), cache);
+	}
+
+	public void close() {
+		try {
+			writeTo();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }

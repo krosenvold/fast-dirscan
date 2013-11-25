@@ -117,7 +117,7 @@ public class Filter
         return !source.isEmpty() && source.charAt( 0 ) == thechar;
     }
 
-    static char[][] tokenizePathToCharArray( String source, char separator )
+    public static char[][] tokenizePathToCharArray(String source, char separator)
     {
         return tokenizePathToCharArray( source, separator, 0);
     }
@@ -164,4 +164,24 @@ public class Filter
     }
 
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+
+		Filter filter = (Filter) o;
+
+		if (regexPattern != null ? !regexPattern.equals(filter.regexPattern) : filter.regexPattern != null)
+			return false;
+		if (source != null ? !source.equals(filter.source) : filter.source != null) return false;
+
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = source != null ? source.hashCode() : 0;
+		result = 31 * result + (regexPattern != null ? regexPattern.hashCode() : 0);
+		return result;
+	}
 }

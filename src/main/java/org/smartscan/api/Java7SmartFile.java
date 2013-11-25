@@ -18,43 +18,32 @@
  */package org.smartscan.api;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 
-public class Java7SmartFile implements SmartFile {
-    private BasicFileAttributes basicFileAttributes;
-    private final File file;
+public class Java7SmartFile extends BaseJava7SmartFile implements SmartFile {
+    private final BasicFileAttributes basicFileAttributes;
 
-    private final char[][] parentVpath;
-	private final char[] fileNameChar;
-
-    private Java7SmartFile(File file, char[][] parentVpath)
+	private Java7SmartFile(File basedir, char[][] parentVpath)
     {
-        this.file = file;
-		//noinspection AssignmentToCollectionOrArrayFieldFromParameter
-		this.parentVpath = parentVpath;
-		this.basicFileAttributes = getBasicFileAttributes(file);
-		this.fileNameChar = file.getName().toCharArray();
+		this(basedir, parentVpath, basedir.getName().toCharArray());
     }
+
+	protected Java7SmartFile(File basedir, char[][] parentVpath, char[] fileName) {
+		super(basedir, parentVpath, fileName);
+		basicFileAttributes = getBasicFileAttributes(file);
+	}
+
+
 
 	public static SmartFile createSmartFile(File file, char[][] parentVpath) {
         return new Java7SmartFile(file, parentVpath);
 	}
 
-	private static BasicFileAttributes getBasicFileAttributes(File file) {
-		BasicFileAttributes basicFileAttributes;
-		try
-		{
-			basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-		}
-		catch ( IOException e )
-		{
-			throw new RuntimeException(e);
-		}
-		return basicFileAttributes;
-	}
+	public static final char[][] NO_FILES_VPATH_ = new char[0][];
 
+	public static SmartFile createRootDir(File file) {
+		return new Java7SmartFile(file, NO_FILES_VPATH_, new char[0]);
+	}
 
 	@Override
     public boolean isFile() {
@@ -66,43 +55,8 @@ public class Java7SmartFile implements SmartFile {
         return basicFileAttributes.isDirectory();
     }
 
-    public File getFile()
-    {
-        return file;
-    }
-
-    public String getVpath(){
-        StringBuilder result = new StringBuilder();
-        for (char[] chars : parentVpath) {
-            result.append(chars);
-            result.append(File.separatorChar);
-        }
-        result.append( file.getName());
-        return result.toString();
-    }
-
-    @Override
-    public int compareTo(Object o) {
-        // TODO: Cant do this for proxies
-        return file.getPath().compareTo( ((Java7SmartFile)o).file.getPath());
-    }
-
-    @Override
-    public String toString() {
-        return getVpath();
-    }
-
 	@Override
-	public File[] listFiles() {
-		return file.listFiles();
-	}
-
-	public char[] getFileNameChar() {
-		return fileNameChar;
-	}
-
-	@Override
-	public char[][] getParentVpath() {
-		return parentVpath;
+	public long lastModified(){
+		return basicFileAttributes.lastModifiedTime().toMillis();
 	}
 }

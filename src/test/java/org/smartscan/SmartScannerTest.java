@@ -57,6 +57,27 @@ public class SmartScannerTest {
 
 	}
 
+	@Test
+	public void secondTimeCached() throws InterruptedException {
+		File basedir = new File("src/test/resources/directorywalker");
+		SmartScanner ss = new SmartScanner(basedir, null,null ,2);
+		ss.scan2(new SmartFileReceiver() {
+			@Override
+			public void accept(SmartFile file) {
+				System.out.println("ssB1.getFile() = " + file.getFile().getPath());
+			}
+		});
+
+		SmartScanner ss2 = new SmartScanner(basedir, null,null ,2);
+		ss2.scan2(new SmartFileReceiver() {
+			@Override
+			public void accept(SmartFile file) {
+				System.out.println("ssB2.getFile() = " + file.getFile().getPath());
+			}
+		});
+
+	}
+
 	private String[] getReference(File basedir) {
 		DirectoryScanner ds = new DirectoryScanner();
 		ds.setBasedir(basedir);
