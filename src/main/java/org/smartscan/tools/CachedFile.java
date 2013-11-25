@@ -27,7 +27,7 @@ public class CachedFile {
 
 	public static void writeDir(Writer os, SmartFile smartFile) throws IOException {
 		writeFileType(os, smartFile);
-		os.write(Long.toString(smartFile.lastModified()));
+		os.write(Long.toString(smartFile.lastModified(), Character.MAX_RADIX));
 		 os.write((byte)' ');
 		writePath(os, smartFile);
 		os.write('\n');
