@@ -19,6 +19,8 @@
 package org.smartscan;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codehaus.plexus.util.DirectoryScanner;
@@ -59,6 +61,17 @@ public class BenchmarkTest
 
     }
 
+
+    private  static void dropCaches() throws IOException {
+        File cacheCntrol = new File("/proc/sys/vm/drop_caches");
+        if (cacheCntrol.exists()){
+            System.out.println("Dropping os level caches");
+            FileWriter fw = new FileWriter(cacheCntrol);
+            fw.write("3");
+            fw.close();
+        }
+    }
+
     @Test
     @Ignore
     public void srswx10()
@@ -72,8 +85,9 @@ public class BenchmarkTest
     }
 
     private static int multiThreadedSingleReceiver( File basedir, int nThreads )
-        throws InterruptedException
-    {
+            throws InterruptedException, IOException {
+
+        dropCaches();
         long milliStart = System.currentTimeMillis();
         ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
         try
@@ -93,8 +107,8 @@ public class BenchmarkTest
     }
 
     private static int multiThreaded( File basedir, int nThreads )
-        throws InterruptedException
-    {
+            throws InterruptedException, IOException {
+        dropCaches();
         long milliStart = System.currentTimeMillis();
         ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
         try
@@ -112,9 +126,9 @@ public class BenchmarkTest
     }
 
 	private static int cachingMultiThreaded( File basedir, int nThreads )
-			throws InterruptedException
-	{
-		long milliStart = System.currentTimeMillis();
+            throws InterruptedException, IOException {
+        dropCaches();
+        long milliStart = System.currentTimeMillis();
 		ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
 		try
 		{

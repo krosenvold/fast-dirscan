@@ -7,19 +7,18 @@ import org.smartscan.api.SmartFileReceiver;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
 
 /**
  * Reads with multiple threads
  */
+@SuppressWarnings({"Since15", "UnnecessaryFullyQualifiedName"})
 public class CachingMultiReader
 		extends ModernBase {
 
 	public static final char[][] NO_FILES_VPATH_ = new char[0][];
 	public static final SmartFile[] NO_SMARTFILES = new SmartFile[0];
 
-	private final ForkJoinPool executor;
+	private final java.util.concurrent.ForkJoinPool executor;
 
 	private final SmartFileReceiver smartFileReceiver;
 
@@ -29,7 +28,7 @@ public class CachingMultiReader
 							  int nThreads) {
 		super(basedir, includes, excludes);
 		ScannerTools.verifyBaseDir(basedir);
-		executor = new ForkJoinPool(nThreads);
+		executor = new java.util.concurrent.ForkJoinPool(nThreads);
 		this.smartFileReceiver = smartFileReceiver;
 		scanCache = ScanCache.mavenDefault(basedir, includes, excludes);
 	}
@@ -89,7 +88,7 @@ public class CachingMultiReader
 							firstVpath = copy(mutablevpath);
 						} else {
 							final char[][] copy = copy(mutablevpath);
-							new RecursiveAction() {
+							new java.util.concurrent.RecursiveAction() {
 								@Override
 								protected void compute() {
 									scandir(smartFile, copy);
