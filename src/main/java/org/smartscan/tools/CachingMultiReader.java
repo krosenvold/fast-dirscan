@@ -13,6 +13,7 @@ import java.util.concurrent.RecursiveAction;
 /**
  * Reads with multiple threads
  */
+@SuppressWarnings("Since15")
 public class CachingMultiReader
 		extends ModernBase {
 
@@ -101,22 +102,6 @@ public class CachingMultiReader
 			unmodifyableparentvpath = firstVpath;
 		}
 		while (firstDir != null);
-	}
-
-	private static SmartFile[] createSmartFiles(File[] files, char[][] unmodifyableparentvpath) {
-
-		if (files == null) return NO_SMARTFILES;
-
-		final int length = files.length;
-		SmartFile[] result = new SmartFile[length];
-
-		for (int i = 0; i < length; i++) {
-			result[i] = Java7SmartFile.createSmartFile(files[i], unmodifyableparentvpath);
-		}
-		return result;
-	}
-	private static SmartFile[] createSmartFiles(SmartFile dir, char[][] unmodifyableparentvpath) {
-		return createSmartFiles(dir.listFiles(), unmodifyableparentvpath);
 	}
 
 }
