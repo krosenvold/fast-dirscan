@@ -65,7 +65,6 @@ public class BenchmarkTest
     private  static void dropCaches() throws IOException {
         File cacheCntrol = new File("/proc/sys/vm/drop_caches");
         if (cacheCntrol.exists()){
-            System.out.println("Dropping os level caches");
             FileWriter fw = new FileWriter(cacheCntrol);
             fw.write("3");
             fw.close();
@@ -166,8 +165,8 @@ public class BenchmarkTest
         }
     }
 
-	private static String[] scanOriginal( File file )
-    {
+	private static String[] scanOriginal( File file ) throws IOException {
+        dropCaches();
         long start = System.currentTimeMillis();
         try
         {
