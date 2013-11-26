@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.concurrent.LinkedTransferQueue;
 
+@SuppressWarnings("Since15")
 public class MultiReaderSingleWorker implements Iterator<SmartFile>
 {
 
@@ -21,7 +22,8 @@ public class MultiReaderSingleWorker implements Iterator<SmartFile>
 			throws InterruptedException
 	{
 		queue = new LinkedTransferQueue<SmartFile>();
-		reader = new MultiReader( basedir, includes, excludes, getFastFileReceiver(), nThreads );
+        final ScanCache passthrough = ScanCache.passthrough(basedir, includes, excludes);
+        reader = new MultiReader( basedir, includes, excludes, getFastFileReceiver(), nThreads, passthrough);
 		reader.beginThreadedScan();
 	}
 

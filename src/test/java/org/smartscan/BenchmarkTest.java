@@ -29,6 +29,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.smartscan.api.SmartFile;
 import org.smartscan.api.SmartFileReceiver;
+import org.smartscan.tools.Filters;
+import org.smartscan.tools.ScanCache;
+import org.smartscan.tools.ScannerTools;
 
 import static org.fest.assertions.api.Assertions.*;
 
@@ -51,11 +54,10 @@ public class BenchmarkTest
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
             Assert.assertEquals("12 mtsr", expected +1 , multiThreadedSingleReceiver(file, 12));
             assertThat( multiThreadedSingleReceiver( file, 8 ) ).as("8 mtsr").isEqualTo(expected + 1);
-            assertThat( multiThreadedSingleReceiver( file, 4 ) ).as( "4 mtsr" ).isEqualTo( expected +1 );
-			assertThat( multiThreaded( file, 10 ) ).as( "mr" ).isEqualTo( expected  );
-            assertThat( multiThreaded( file, 12 ) ).as( "mr" ).isEqualTo( expected  );
-			assertThat( multiThreaded(file, 16) ).as( "mr" ).isEqualTo( expected);
+            assertThat( multiThreadedSingleReceiver(file, 4) ).as( "4 mtsr" ).isEqualTo( expected +1 );
 			assertThat( cachingMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
+            assertThat( ptrcachingMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
+
             System.out.println( "" );
         }
 
@@ -71,20 +73,9 @@ public class BenchmarkTest
         }
     }
 
-    @Test
-    @Ignore
-    public void srswx10()
-        throws Exception
-    {
-        assertThat( 1 ).isEqualTo( 1 );
-        final File file = new File( "src/test/testdata/perftestData" );
-        System.out.println( "Warmup complete" );
-        multiThreaded( file, 12 );
-
-    }
 
     private static int multiThreadedSingleReceiver( File basedir, int nThreads )
-            throws InterruptedException, IOException {
+            throws IOException {
 
         dropCaches();
         long milliStart = System.currentTimeMillis();
@@ -105,26 +96,7 @@ public class BenchmarkTest
         }
     }
 
-    private static int multiThreaded( File basedir, int nThreads )
-            throws InterruptedException, IOException {
-        dropCaches();
-        long milliStart = System.currentTimeMillis();
-        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
-        try
-        {
-			SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
-
-			ss.scan(ffr);
-
-			return ffr.recvd.get();
-        }
-        finally
-        {
-            System.out.print( ", MR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
-        }
-    }
-
-	private static int cachingMultiThreaded( File basedir, int nThreads )
+    private static int cachingMultiThreaded( File basedir, int nThreads )
             throws InterruptedException, IOException {
         dropCaches();
         long milliStart = System.currentTimeMillis();
@@ -142,6 +114,29 @@ public class BenchmarkTest
 			System.out.print( ", CMR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
 		}
 	}
+
+    private static int ptrcachingMultiThreaded( File basedir, int nThreads )
+            throws InterruptedException, IOException {
+        dropCaches();
+        long milliStart = System.currentTimeMillis();
+        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+        try
+        {
+            final Filters inc = Filters.from(ScannerTools.getIncludes(null));
+            final Filters ex = Filters.from(ScannerTools.getExcludes(null));
+            ScanCache scanCache = ScanCache.passthrough(basedir, inc, ex);
+            SmartScanner ss = new SmartScanner(basedir, inc, ex, nThreads, scanCache);
+
+            ss.scan2(ffr);
+
+            return ffr.recvd.get();
+        }
+        finally
+        {
+            System.out.print( ", PTCMR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+        }
+    }
+
 
     static class ConcurrentFileReceiver
         implements SmartFileReceiver

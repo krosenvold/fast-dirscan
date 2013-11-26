@@ -4,11 +4,7 @@ import org.smartscan.api.CachedJava7SmartFile;
 import org.smartscan.api.Java7SmartFile;
 import org.smartscan.api.SmartFile;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,7 +13,7 @@ import java.util.concurrent.FutureTask;
 /**
  * @author Kristian Rosenvold
  */
-public class ScanCache {
+public class ScanCache implements Closeable {
 
     public static final SmartFile[] NO_SMARTFILES = new SmartFile[0];
 
@@ -25,27 +21,24 @@ public class ScanCache {
     private final Filters includes;
     private final Filters excludes;
     private final ConcurrentHashMap<SmartFile, SmartFile[]> cache;
+    private final boolean enabled;
 
-    private ScanCache(File basedir, Filters includes, Filters excludes, ConcurrentHashMap<SmartFile, SmartFile[]> cache) {
+    private ScanCache(File basedir, Filters includes, Filters excludes, ConcurrentHashMap<SmartFile, SmartFile[]> cache, boolean enabled1) {
         baseDir = basedir.getAbsoluteFile();
         this.includes = includes;
         this.excludes = excludes;
         this.cache = cache;
+        enabled = enabled1;
     }
 
 
-    public static File getCacheBaseDir() {
+    private static File getCacheBaseDir() {
         return new File("target");
     }
 
     static File getCacheFile(File baseDir) {
         return new File(getCacheBaseDir(), "testCache_" + baseDir.getPath().replace(File.separatorChar, '_'));
     }
-
-    public ScanCache(File baseDir, ConcurrentHashMap<SmartFile, SmartFile[]> cache) {
-        this(baseDir, null, null, cache);
-    }
-
 
     private static SmartFile[] createSmartFiles(File[] files, char[][] unmodifyableparentvpath) {
 
@@ -63,16 +56,32 @@ public class ScanCache {
     }
 
     public SmartFile[] createSmartFiles(SmartFile dir, char[][] dirvpath) {
-        final SmartFile[] smartFiles1 = cache.get(dir);
-        if (smartFiles1 != null) {
-            return smartFiles1;
+        if (enabled) {
+            final SmartFile[] smartFiles1 = cache.get(dir);
+            if (smartFiles1 != null) {
+                return smartFiles1;
+            }
         }
+        return doCreateSmartFiles(dir, dirvpath);
+    }
+
+    private SmartFile[] doCreateSmartFiles(SmartFile dir, char[][] dirvpath) {
         final SmartFile[] smartFiles = createSmartFiles(dir.listFiles(), dirvpath);
         cache.put(dir, smartFiles);
         return smartFiles;
     }
 
+    public void close() {
+        try {
+            if (enabled)
+                writeTo();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void writeTo() throws IOException {
+
         final FileWriter fw = new FileWriter(getCacheFile(baseDir));
         fw.write(baseDir.getAbsolutePath());
         fw.write('\n');
@@ -103,7 +112,7 @@ public class ScanCache {
     private static Map<File, ScanCache> instances = new ConcurrentHashMap<File, ScanCache>();
 
     public static ScanCache mavenDefault(File basedir, Filters includes, Filters excludes) {
-        ScanCache instance = instances.get( basedir);
+        ScanCache instance = instances.get(basedir);
         if (instance != null) return instance;
 
         File cacheFile = getCacheFile(basedir);
@@ -111,12 +120,15 @@ public class ScanCache {
             return fromFile(cacheFile);
         } catch (IOException ignore) {
         }
-        final ScanCache scanCache = new ScanCache(basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>());
+        final ScanCache scanCache = new ScanCache(basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>(), true);
         instances.put(basedir, scanCache);
         return scanCache;
     }
+    public static ScanCache passthrough(File basedir, Filters includes, Filters excludes) {
+        return new ScanCache(basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>(), false);
+    }
 
-    public static ScanCache fromFile(File cacheStore1) throws IOException {
+    static ScanCache fromFile(File cacheStore1) throws IOException {
         FileReader fr = new FileReader(cacheStore1);
         final BufferedReader br = new BufferedReader(fr, 32768 * 4);
 
@@ -164,14 +176,6 @@ public class ScanCache {
         new Thread(new FutureTask(loader)).start();
 
 
-        return new ScanCache(new File(basedir), cache);
-    }
-
-    public void close() {
-        try {
-            writeTo();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        return new ScanCache(new File(basedir), null, null, cache, true);
     }
 }

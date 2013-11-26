@@ -26,14 +26,16 @@ public class SmartScanner implements Iterable<SmartFile> {
         scanCache = ScanCache.mavenDefault(basedir, includesPatterns, excludesPatterns);
 	}
 
-	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {
-		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
-		multiReader.beginThreadedScan();
-		multiReader.awaitCompletion();
-	}
+    public SmartScanner(File basedir, Filters includes, Filters excludes, int nThreads, ScanCache scanCache) {
+        this.basedir = basedir;
+        this.nThreads = nThreads;
+        includesPatterns = includes;
+        excludesPatterns = excludes;
+        this.scanCache = scanCache;
+    }
 
-	public void scan2(SmartFileReceiver smartFileReceiver) throws InterruptedException {
-        CachingMultiReader multiReader = new CachingMultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads, scanCache);
+    public void scan2(SmartFileReceiver smartFileReceiver) throws InterruptedException {
+        MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads, scanCache);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
