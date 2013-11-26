@@ -25,12 +25,12 @@ public class CachingMultiReader
 	private final ScanCache scanCache;
 
 	public CachingMultiReader(File basedir, Filters includes, Filters excludes, SmartFileReceiver smartFileReceiver,
-							  int nThreads) {
+                              int nThreads, ScanCache scanCache1) {
 		super(basedir, includes, excludes);
 		ScannerTools.verifyBaseDir(basedir);
 		executor = new java.util.concurrent.ForkJoinPool(nThreads);
 		this.smartFileReceiver = smartFileReceiver;
-		scanCache = ScanCache.mavenDefault(basedir, includes, excludes);
+		scanCache = scanCache1;
 	}
 
 	public boolean isComplete() {

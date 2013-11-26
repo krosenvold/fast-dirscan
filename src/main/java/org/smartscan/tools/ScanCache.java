@@ -100,13 +100,20 @@ public class ScanCache {
 
     }
 
+    private static Map<File, ScanCache> instances = new ConcurrentHashMap<File, ScanCache>();
+
     public static ScanCache mavenDefault(File basedir, Filters includes, Filters excludes) {
+        ScanCache instance = instances.get( basedir);
+        if (instance != null) return instance;
+
         File cacheFile = getCacheFile(basedir);
         if (cacheFile.exists()) try {
             return fromFile(cacheFile);
         } catch (IOException ignore) {
         }
-        return new ScanCache(basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>());
+        final ScanCache scanCache = new ScanCache(basedir, includes, excludes, new ConcurrentHashMap<SmartFile, SmartFile[]>());
+        instances.put(basedir, scanCache);
+        return scanCache;
     }
 
     public static ScanCache fromFile(File cacheStore1) throws IOException {

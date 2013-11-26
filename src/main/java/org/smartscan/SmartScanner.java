@@ -16,12 +16,14 @@ public class SmartScanner implements Iterable<SmartFile> {
 	private final Filters excludesPatterns;
 	private final File basedir;
 	private final int nThreads;
+    private final ScanCache scanCache;
 
 	public SmartScanner(File basedir, String[] includes, String[] excludes, int nThreads) {
 		this.basedir = basedir;
 		this.nThreads = nThreads;
 		includesPatterns = Filters.from(ScannerTools.getIncludes(includes));
 		excludesPatterns = Filters.from(ScannerTools.getExcludes(excludes));
+        scanCache = ScanCache.mavenDefault(basedir, includesPatterns, excludesPatterns);
 	}
 
 	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {
@@ -31,7 +33,7 @@ public class SmartScanner implements Iterable<SmartFile> {
 	}
 
 	public void scan2(SmartFileReceiver smartFileReceiver) throws InterruptedException {
-		CachingMultiReader multiReader = new CachingMultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
+        CachingMultiReader multiReader = new CachingMultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads, scanCache);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
