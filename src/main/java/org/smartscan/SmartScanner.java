@@ -51,41 +51,35 @@ public class SmartScanner {
 		multiReader.awaitCompletion();
 	}
 
-	/**
-	 * Adds default exclusions to the current exclusions set.
-	 */
 	public void addDefaultExcludes()
 	{
 		excludesPatterns = Filters.join(excludesPatterns, Filters.from(AbstractScanner.DEFAULTEXCLUDES));
 	}
 
+	public void setBasedir(File basedir) {
+		this.basedir = basedir;
+	}
 
-	/*
+	public void setExcludes(String excludes){
+		this.excludesPatterns = Filters.from( excludes);
+	}
 
-	        DirectoryScanner scanner = new DirectoryScanner();
-        scanner.setBasedir( sourceDir );
-        scanner.setExcludes( getExcludes() );
-        scanner.addDefaultExcludes();
+	public void setIncludes(String includes){
+		this.includesPatterns = Filters.from( includes);
+	}
 
-        scanner.setIncludes( getIncludes() );
+	public void setFollowSymlinks(){
 
-        scanner.scan();
+	}
 
-        return scanner.getIncludedFiles();
+	public void setCaseSensitive(){
 
-		scanner.getIncludedDirectories()
+	}
 
-		scanner.setFollowSymlinks( false );
+	public void setDirectoryListener(SmartFileReceiver smartFileReceiver){
+
+	}
 
 
-Javdoc:
-        final DirectoryScanner ds = new DirectoryScanner();
-        ds.setBasedir( javadocOutputDirectory );
-        ds.setCaseSensitive( false );
-        ds.setIncludes( new String[]{ } );
-			ds.addDefaultExcludes();
-	ds.scan();
-
-	 */
-
+	// And also: getIncludedDirectories
 }
