@@ -19,8 +19,6 @@
 
 package org.smartscan.tools;
 
-import org.codehaus.plexus.util.AbstractScanner;
-
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
@@ -67,12 +65,16 @@ public class Filters
 	}
 
 	public Filters append( Filters toAppend){
-		Filter[] newAnt = Arrays.copyOf(antPatterns, antPatterns.length + toAppend.antPatterns.length);
-		System.arraycopy(toAppend.antPatterns, 0, newAnt, antPatterns.length, toAppend.antPatterns.length);
-		Filter[] newRegex = Arrays.copyOf(regexPatterns, regexPatterns.length + toAppend.regexPatterns.length);
-		System.arraycopy(toAppend.regexPatterns, 0, newAnt, regexPatterns.length, toAppend.regexPatterns.length);
-		return new Filters( newAnt, newRegex);
+		return new Filters(concat(antPatterns, toAppend.antPatterns), concat(regexPatterns, toAppend.regexPatterns));
 
+	}
+
+	private Filter[] concat(Filter[] filtersA, Filter[] filtersB) {
+		int aLength = filtersA.length;
+		int bLength = filtersB.length;
+		Filter[] result = Arrays.copyOf(filtersA, aLength + bLength);
+		System.arraycopy(filtersB, 0, result, aLength, bLength);
+		return result;
 	}
 
 
