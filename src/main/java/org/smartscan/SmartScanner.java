@@ -39,14 +39,8 @@ public class SmartScanner {
 	}
 
 
-	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {
+    public void scan2(SmartFileReceiver smartFileReceiver) throws InterruptedException {
 		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
-		multiReader.beginThreadedScan();
-		multiReader.awaitCompletion();
-	}
-
-	public void scan2(SmartFileReceiver smartFileReceiver) throws InterruptedException {
-		CachingMultiReader multiReader = new CachingMultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
