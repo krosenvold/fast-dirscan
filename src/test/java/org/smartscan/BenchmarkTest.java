@@ -81,7 +81,7 @@ public class BenchmarkTest
 			SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
 			 final AtomicInteger recvd = new AtomicInteger( 0 );
 
-			for (SmartFile s : ss) {
+			for (SmartFile s : ss.scan()) {
 				recvd.incrementAndGet();
 			}
 			return recvd.incrementAndGet();

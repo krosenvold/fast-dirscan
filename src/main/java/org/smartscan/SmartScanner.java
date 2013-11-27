@@ -10,7 +10,7 @@ import java.util.Iterator;
 /**
  * @author Kristian Rosenvold
  */
-public class SmartScanner implements Iterable<SmartFile> {
+public class SmartScanner {
 
 	private final Filters includesPatterns;
 	private final Filters excludesPatterns;
@@ -24,6 +24,19 @@ public class SmartScanner implements Iterable<SmartFile> {
 		excludesPatterns = Filters.from(ScannerTools.getExcludes(excludes));
 	}
 
+	public Iterable<SmartFile> scan() {
+		return new Iterable<SmartFile>() {
+			@Override
+			public Iterator<SmartFile> iterator() {
+				try {
+					return new MultiReaderSingleWorker(basedir, includesPatterns, excludesPatterns, nThreads);
+				} catch (InterruptedException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+	}
+
 	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {
 		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
 		multiReader.beginThreadedScan();
@@ -34,15 +47,6 @@ public class SmartScanner implements Iterable<SmartFile> {
 		CachingMultiReader multiReader = new CachingMultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
-	}
-
-	@Override
-	public Iterator<SmartFile> iterator() {
-		try {
-			return new MultiReaderSingleWorker(basedir, includesPatterns, excludesPatterns, nThreads);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 }

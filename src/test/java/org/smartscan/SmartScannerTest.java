@@ -20,7 +20,7 @@ public class SmartScannerTest {
 		File basedir = new File("src/test/resources/dir-layout-copy");
 		SmartScanner ss = new SmartScanner(basedir, null,null ,2);
 		int cnt = 0;
-		for (SmartFile sf : ss) {
+		for (SmartFile sf : ss.scan()) {
 			cnt++;
 			System.out.println("ss.getFile() = " + sf.getFile().getPath());
 		}
@@ -36,7 +36,7 @@ public class SmartScannerTest {
 
 		SmartScanner ss = new SmartScanner(basedir, null,null ,2);
 		int cnt = 0;
-		for (SmartFile sf : ss) {
+		for (SmartFile sf : ss.scan()) {
 			cnt++;
 			System.out.println("ssA.getFile() = " + sf.getFile().getPath());
 		}
