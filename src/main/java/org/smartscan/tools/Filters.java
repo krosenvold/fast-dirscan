@@ -19,10 +19,13 @@
 
 package org.smartscan.tools;
 
+import org.codehaus.plexus.util.AbstractScanner;
+
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -58,8 +61,22 @@ public class Filters
         regexPatterns = regex.toArray( new Filter[regex.size()] );
     }
 
+	public Filters(Filter[] antPatterns, Filter[] regexPatterns) {
+		this.antPatterns = antPatterns;
+		this.regexPatterns = regexPatterns;
+	}
 
-    public boolean matches( char[][] tokenizedVpath, boolean isCaseSensitive )
+	public Filters append( Filters toAppend){
+		Filter[] newAnt = Arrays.copyOf(antPatterns, antPatterns.length + toAppend.antPatterns.length);
+		System.arraycopy(toAppend.antPatterns, 0, newAnt, antPatterns.length, toAppend.antPatterns.length);
+		Filter[] newRegex = Arrays.copyOf(regexPatterns, regexPatterns.length + toAppend.regexPatterns.length);
+		System.arraycopy(toAppend.regexPatterns, 0, newAnt, regexPatterns.length, toAppend.regexPatterns.length);
+		return new Filters( newAnt, newRegex);
+
+	}
+
+
+	public boolean matches( char[][] tokenizedVpath, boolean isCaseSensitive )
     {
         for ( Filter pattern : antPatterns )
         {
@@ -125,5 +142,15 @@ public class Filters
         }
         return new Filters( result );
     }
+
+
+	/**
+	 * Adds default exclusions to the current exclusions set.
+	 */
+	public static Filters addFilters(Filters current, String[] defaults)
+	{
+		Filters newF = from( defaults);
+		return current != null ? current.append( newF) : newF;
+	}
 
 }

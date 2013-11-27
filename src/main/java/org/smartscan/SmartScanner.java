@@ -1,5 +1,6 @@
 package org.smartscan;
 
+import org.codehaus.plexus.util.AbstractScanner;
 import org.smartscan.api.SmartFile;
 import org.smartscan.api.SmartFileReceiver;
 import org.smartscan.tools.*;
@@ -12,10 +13,10 @@ import java.util.Iterator;
  */
 public class SmartScanner {
 
-	private final Filters includesPatterns;
-	private final Filters excludesPatterns;
-	private final File basedir;
-	private final int nThreads;
+	private Filters includesPatterns;
+	private Filters excludesPatterns;
+	private File basedir;
+	private int nThreads;
 
 	public SmartScanner(File basedir, String[] includes, String[] excludes, int nThreads) {
 		this.basedir = basedir;
@@ -37,6 +38,7 @@ public class SmartScanner {
 		};
 	}
 
+
 	public void scan(SmartFileReceiver smartFileReceiver) throws InterruptedException {
 		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
 		multiReader.beginThreadedScan();
@@ -48,5 +50,42 @@ public class SmartScanner {
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
+
+	/**
+	 * Adds default exclusions to the current exclusions set.
+	 */
+	public void addDefaultExcludes()
+	{
+		excludesPatterns = Filters.addFilters( excludesPatterns , AbstractScanner.DEFAULTEXCLUDES);
+	}
+
+
+	/*
+
+	        DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setBasedir( sourceDir );
+        scanner.setExcludes( getExcludes() );
+        scanner.addDefaultExcludes();
+
+        scanner.setIncludes( getIncludes() );
+
+        scanner.scan();
+
+        return scanner.getIncludedFiles();
+
+		scanner.getIncludedDirectories()
+
+		scanner.setFollowSymlinks( false );
+
+
+Javdoc:
+        final DirectoryScanner ds = new DirectoryScanner();
+        ds.setBasedir( javadocOutputDirectory );
+        ds.setCaseSensitive( false );
+        ds.setIncludes( new String[]{ } );
+			ds.addDefaultExcludes();
+	ds.scan();
+
+	 */
 
 }
