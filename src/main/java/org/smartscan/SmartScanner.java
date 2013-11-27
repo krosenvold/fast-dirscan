@@ -56,7 +56,7 @@ public class SmartScanner {
 	 */
 	public void addDefaultExcludes()
 	{
-		excludesPatterns = Filters.addFilters( excludesPatterns , AbstractScanner.DEFAULTEXCLUDES);
+		excludesPatterns = Filters.join(excludesPatterns, Filters.from(AbstractScanner.DEFAULTEXCLUDES));
 	}
 
 

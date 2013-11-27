@@ -147,12 +147,11 @@ public class Filters
 
 
 	/**
-	 * Adds default exclusions to the current exclusions set.
+	 * Joins two filters, appending  second to first
 	 */
-	public static Filters addFilters(Filters current, String[] defaults)
+	public static Filters join(Filters first, Filters second)
 	{
-		Filters newF = from( defaults);
-		return current != null ? current.append( newF) : newF;
+		return first != null ? first.append(second) : second;
 	}
 
 }
