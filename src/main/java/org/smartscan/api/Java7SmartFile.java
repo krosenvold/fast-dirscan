@@ -20,6 +20,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public class Java7SmartFile implements SmartFile {
@@ -46,7 +47,7 @@ public class Java7SmartFile implements SmartFile {
 		BasicFileAttributes basicFileAttributes;
 		try
 		{
-			basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+			basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
 		}
 		catch ( IOException e )
 		{
