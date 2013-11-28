@@ -17,8 +17,9 @@ public class SmartScanner {
 	private Filters excludesPatterns;
 	private File basedir;
 	private int nThreads;
+    private SmartFileReceiver dirListener;
 
-	public SmartScanner(File basedir, String[] includes, String[] excludes, int nThreads) {
+    public SmartScanner(File basedir, String[] includes, String[] excludes, int nThreads) {
 		this.basedir = basedir;
 		this.nThreads = nThreads;
 		includesPatterns = Filters.from(ScannerTools.getIncludes(includes));
@@ -40,7 +41,7 @@ public class SmartScanner {
 
 
     public void scan(SmartFileReceiver fileReceiver) throws InterruptedException {
-		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, nThreads);
+		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, dirListener, nThreads);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
@@ -77,7 +78,7 @@ public class SmartScanner {
 	}
 
 	public void setDirectoryListener(SmartFileReceiver smartFileReceiver){
-
+        this.dirListener = smartFileReceiver;
 	}
 
 

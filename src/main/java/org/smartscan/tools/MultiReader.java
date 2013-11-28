@@ -24,14 +24,17 @@ public class MultiReader
 
 	private final SmartFileReceiver smartFileReceiver;
 
+    private final SmartFileReceiver dirReceiver;
+
 	private final ScanCache scanCache;
 
 	public MultiReader(File basedir, Filters includes, Filters excludes, SmartFileReceiver smartFileReceiver,
-                       int nThreads) {
+                       SmartFileReceiver dirListener, int nThreads) {
 		super(basedir, includes, excludes);
 		ScannerTools.verifyBaseDir(basedir);
 		executor = new ForkJoinPool(nThreads);
 		this.smartFileReceiver = smartFileReceiver;
+        this.dirReceiver = dirListener;
 		scanCache = new ScanCache();
 	}
 
@@ -83,6 +86,7 @@ public class MultiReader
 					}
 				} else if (smartFile.isDirectory()) {
 					if (shouldInclude || couldHoldIncluded(mutablevpath)) {
+                        if (dirReceiver != null) dirReceiver.accept( smartFile);
 						if (firstDir == null) {
 							firstDir = smartFile;
 							firstVpath = copy(mutablevpath);
