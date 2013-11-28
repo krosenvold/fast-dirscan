@@ -11,6 +11,8 @@ public interface SmartFile extends Comparable {
 
     boolean isDirectory();
 
+    boolean isSymbolicLink();
+
     File getFile();
 
     String getVpath();

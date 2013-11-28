@@ -22,7 +22,7 @@ public class MultiReaderSingleWorker implements Iterator<SmartFile>
 			throws InterruptedException
 	{
 		queue = new LinkedTransferQueue<SmartFile>();
-		reader = new MultiReader( basedir, includes, excludes, getFileReceiver(), null, nThreads );
+		reader = new MultiReader( basedir, includes, excludes, getFileReceiver(), null, nThreads, true);
 		reader.beginThreadedScan();
 	}
 

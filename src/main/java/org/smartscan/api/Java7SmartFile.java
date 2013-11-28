@@ -66,6 +66,11 @@ public class Java7SmartFile implements SmartFile {
         return basicFileAttributes.isDirectory();
     }
 
+    @Override
+    public boolean isSymbolicLink() {
+        return basicFileAttributes.isSymbolicLink();
+    }
+
     public File getFile()
     {
         return file;

@@ -43,18 +43,18 @@ public class SmartScannerTest {
 
 	}
 
-	@Test
-	public void shouldShowCorrectElementsOtherDir2() throws InterruptedException {
-		File basedir = new File("src/test/resources/directorywalker");
-		SmartScanner ss = new SmartScanner(basedir, null,null ,2);
-		ss.scan(new SmartFileReceiver() {
+    @Test
+    public void shouldShowCorrectElementsOtherDir2() throws InterruptedException {
+        File basedir = new File("src/test/resources/directorywalker");
+        SmartScanner ss = new SmartScanner(basedir, null,null ,2);
+        ss.scan(new SmartFileReceiver() {
             @Override
             public void accept(SmartFile file) {
                 System.out.println("ssB.getFile() = " + file.getFile().getPath());
             }
         });
 
-	}
+    }
 
 	private String[] getReference(File basedir) {
 		DirectoryScanner ds = new DirectoryScanner();

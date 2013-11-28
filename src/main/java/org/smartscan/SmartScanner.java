@@ -41,7 +41,7 @@ public class SmartScanner {
 
 
     public void scan(SmartFileReceiver fileReceiver) throws InterruptedException {
-		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, dirListener, nThreads);
+		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, dirListener, nThreads, true);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
