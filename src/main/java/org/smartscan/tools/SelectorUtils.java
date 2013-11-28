@@ -76,22 +76,22 @@ public final class SelectorUtils
             && pattern.startsWith( ANT_HANDLER_PREFIX ) && pattern.endsWith( PATTERN_HANDLER_SUFFIX );
     }
 
-    static boolean matchAntPathPattern( char[][] patDirs, char[][] strDirs, boolean isCaseSensitive )
+    static boolean matchAntPathPattern( char[][] patterns, char[][] directories, boolean isCaseSensitive )
     {
         int patIdxStart = 0;
-        int patIdxEnd = patDirs.length - 1;
+        int patIdxEnd = patterns.length - 1;
         int strIdxStart = 0;
-        int strIdxEnd = strDirs.length - 1;
+        int strIdxEnd = directories.length - 1;
 
         // up to first '**'
         while ( patIdxStart <= patIdxEnd && strIdxStart <= strIdxEnd )
         {
-            char[] patDir = patDirs[patIdxStart];
-            if ( isDoubleStar( patDir ) )
+            char[] pattern = patterns[patIdxStart];
+            if ( isDoubleStar( pattern ) )
             {
                 break;
             }
-            if ( !match( patDir, strDirs[strIdxStart], isCaseSensitive ) )
+            if ( !match( pattern, directories[strIdxStart], isCaseSensitive ) )
             {
                 return false;
             }
@@ -103,7 +103,7 @@ public final class SelectorUtils
             // String is exhausted
             for ( int i = patIdxStart; i <= patIdxEnd; i++ )
             {
-                if ( !isDoubleStar( patDirs[i] ) )
+                if ( !isDoubleStar( patterns[i] ) )
                 {
                     return false;
                 }
@@ -119,12 +119,12 @@ public final class SelectorUtils
         // up to last '**'
         while ( patIdxStart <= patIdxEnd && strIdxStart <= strIdxEnd )
         {
-            char[] patDir = patDirs[patIdxEnd];
-            if ( isDoubleStar( patDir ) )
+            char[] pattern = patterns[patIdxEnd];
+            if ( isDoubleStar( pattern ) )
             {
                 break;
             }
-            if ( !match( patDir, strDirs[strIdxEnd], isCaseSensitive ) )
+            if ( !match( pattern, directories[strIdxEnd], isCaseSensitive ) )
             {
                 return false;
             }
@@ -136,7 +136,7 @@ public final class SelectorUtils
             // String is exhausted
             for ( int i = patIdxStart; i <= patIdxEnd; i++ )
             {
-                if ( !isDoubleStar( patDirs[i] ) )
+                if ( !isDoubleStar( patterns[i] ) )
                 {
                     return false;
                 }
@@ -149,7 +149,7 @@ public final class SelectorUtils
             int patIdxTmp = -1;
             for ( int i = patIdxStart + 1; i <= patIdxEnd; i++ )
             {
-                if ( isDoubleStar( patDirs[i] ) )
+                if ( isDoubleStar( patterns[i] ) )
                 {
                     patIdxTmp = i;
                     break;
@@ -171,8 +171,8 @@ public final class SelectorUtils
             {
                 for ( int j = 0; j < patLength; j++ )
                 {
-                    char[] subPat = patDirs[patIdxStart + j + 1];
-                    char[] subStr = strDirs[strIdxStart + i + j];
+                    char[] subPat = patterns[patIdxStart + j + 1];
+                    char[] subStr = directories[strIdxStart + i + j];
                     if ( !match( subPat, subStr, isCaseSensitive ) )
                     {
                         continue strLoop;
@@ -194,7 +194,7 @@ public final class SelectorUtils
 
         for ( int i = patIdxStart; i <= patIdxEnd; i++ )
         {
-            if ( !isDoubleStar( patDirs[i] ) )
+            if ( !isDoubleStar( patterns[i] ) )
             {
                 return false;
             }
@@ -208,61 +208,16 @@ public final class SelectorUtils
         return patDir != null && patDir.length == 2 && patDir[0] == '*' && patDir[1] == '*';
     }
 
-    /**
-     * Tests whether or not a string matches against a pattern.
-     * The pattern may contain two special characters:<br>
-     * '*' means zero or more characters<br>
-     * '?' means one and only one character
-     *
-     * @param pattern The pattern to match against.
-     *                Must not be {@code null}.
-     * @param str     The string which must be matched against the pattern.
-     *                Must not be {@code null}.
-     * @return {@code true} if the string matches against the pattern,
-     * or {@code false} otherwise.
-     */
-    public static boolean match( String pattern, String str )
-    {
-        return match( pattern, str, true );
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    /**
-     * Tests whether or not a string matches against a pattern.
-     * The pattern may contain two special characters:<br>
-     * '*' means zero or more characters<br>
-     * '?' means one and only one character
-     *
-     * @param pattern         The pattern to match against.
-     *                        Must not be {@code null}.
-     * @param str             The string which must be matched against the pattern.
-     *                        Must not be {@code null}.
-     * @param isCaseSensitive Whether or not matching should be performed
-     *                        case sensitively.
-     * @return {@code true} if the string matches against the pattern,
-     * or {@code false} otherwise.
-     */
-    public static boolean match( String pattern, String str, boolean isCaseSensitive )
-    {
-        char[] patArr = pattern.toCharArray();
-        char[] strArr = str.toCharArray();
-        return match( patArr, strArr, isCaseSensitive );
-    }
-
-    public static boolean match( char[] patArr, char[] strArr, boolean isCaseSensitive )
+    private static boolean match( char[] pattern, char[] strArr, boolean isCaseSensitive )
     {
         int patIdxStart = 0;
-        int patIdxEnd = patArr.length - 1;
+        int patIdxEnd = pattern.length - 1;
         int strIdxStart = 0;
         int strIdxEnd = strArr.length - 1;
         char ch;
 
         boolean containsStar = false;
-        for ( char aPatArr : patArr )
+        for ( char aPatArr : pattern )
         {
             if ( aPatArr == '*' )
             {
@@ -280,7 +235,7 @@ public final class SelectorUtils
             }
             for ( int i = 0; i <= patIdxEnd; i++ )
             {
-                ch = patArr[i];
+                ch = pattern[i];
                 if ( ch != '?' && !equals( ch, strArr[i], isCaseSensitive ) )
                 {
                     return false; // Character mismatch
@@ -295,7 +250,7 @@ public final class SelectorUtils
         }
 
         // Process characters before first star
-        while ( ( ch = patArr[patIdxStart] ) != '*' && strIdxStart <= strIdxEnd )
+        while ( ( ch = pattern[patIdxStart] ) != '*' && strIdxStart <= strIdxEnd )
         {
             if ( ch != '?' && !equals( ch, strArr[strIdxStart], isCaseSensitive ) )
             {
@@ -310,7 +265,7 @@ public final class SelectorUtils
             // left in the pattern. If so, we succeeded. Otherwise failure.
             for ( int i = patIdxStart; i <= patIdxEnd; i++ )
             {
-                if ( patArr[i] != '*' )
+                if ( pattern[i] != '*' )
                 {
                     return false;
                 }
@@ -319,7 +274,7 @@ public final class SelectorUtils
         }
 
         // Process characters after last star
-        while ( ( ch = patArr[patIdxEnd] ) != '*' && strIdxStart <= strIdxEnd )
+        while ( ( ch = pattern[patIdxEnd] ) != '*' && strIdxStart <= strIdxEnd )
         {
             if ( ch != '?' && !equals( ch, strArr[strIdxEnd], isCaseSensitive ) )
             {
@@ -334,7 +289,7 @@ public final class SelectorUtils
             // left in the pattern. If so, we succeeded. Otherwise failure.
             for ( int i = patIdxStart; i <= patIdxEnd; i++ )
             {
-                if ( patArr[i] != '*' )
+                if ( pattern[i] != '*' )
                 {
                     return false;
                 }
@@ -349,7 +304,7 @@ public final class SelectorUtils
             int patIdxTmp = -1;
             for ( int i = patIdxStart + 1; i <= patIdxEnd; i++ )
             {
-                if ( patArr[i] == '*' )
+                if ( pattern[i] == '*' )
                 {
                     patIdxTmp = i;
                     break;
@@ -371,7 +326,7 @@ public final class SelectorUtils
             {
                 for ( int j = 0; j < patLength; j++ )
                 {
-                    ch = patArr[patIdxStart + j + 1];
+                    ch = pattern[patIdxStart + j + 1];
                     if ( ch != '?' && !equals( ch, strArr[strIdxStart + i + j], isCaseSensitive ) )
                     {
                         continue strLoop;
@@ -395,7 +350,7 @@ public final class SelectorUtils
         // in the pattern. If so, we succeeded. Otherwise failure.
         for ( int i = patIdxStart; i <= patIdxEnd; i++ )
         {
-            if ( patArr[i] != '*' )
+            if ( pattern[i] != '*' )
             {
                 return false;
             }

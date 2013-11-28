@@ -25,7 +25,6 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
 /**
@@ -47,8 +46,11 @@ public class Filter
     @Nonnull
     private final char[][] tokenizedChar;
 
-	public Filter(@Nonnull String source)
+    private final boolean isCaseSensitive;
+
+	public Filter(@Nonnull String source, boolean caseSensitive)
     {
+        isCaseSensitive = caseSensitive;
         //noinspection AssignmentToNull
         String regexPatternStr = SelectorUtils.isRegexPrefixedPattern( source ) ? source.substring(
             SelectorUtils.REGEX_HANDLER_PREFIX.length(),
@@ -64,6 +66,13 @@ public class Filter
         tokenizedChar = tokenizePathToCharArray( this.source, File.separatorChar );
     }
 
+    public Filter(@Nonnull Filter source, boolean caseSensitive)
+    {
+        regexPattern = source.regexPattern;
+        this.source = source.source;
+        this.isCaseSensitive = caseSensitive;
+        this.tokenizedChar = source.tokenizedChar;
+    }
 
     private static boolean separatorPatternStartSlashMismatch( Filter filter, char[][] vpath, char separator )
     {
@@ -80,13 +89,13 @@ public class Filter
     }
 
     @SuppressWarnings( "IfMayBeConditional" )
-    boolean matchAntPath( char[][] tokenizedVpath, boolean isCaseSensitive )
+    boolean matchAntPath(char[][] tokenizedVpath)
     {
-        return SelectorUtils.matchAntPathPattern( tokenizedChar, tokenizedVpath, isCaseSensitive );
+        return SelectorUtils.matchAntPathPattern( tokenizedChar, tokenizedVpath, this.isCaseSensitive );
     }
 
     @SuppressWarnings( "HardcodedFileSeparator" )
-    public boolean matchPatternStart( char[][] tokenizedvpath, boolean isCaseSensitive )
+    public boolean matchPatternStart(char[][] tokenizedvpath)
     {
         if ( regexPattern != null )
         {
@@ -95,13 +104,12 @@ public class Filter
         }
         else
         {
-            return matchAntPathPatternStart( this, tokenizedvpath, File.separatorChar, isCaseSensitive )
-                || matchAntPathPatternStart( this, tokenizedvpath, '/', isCaseSensitive );
+            return matchAntPathPatternStart( this, tokenizedvpath, File.separatorChar)
+                || matchAntPathPatternStart( this, tokenizedvpath, '/');
         }
     }
 
-    private static boolean matchAntPathPatternStart( Filter pattern, char[][] vpath, char separator,
-                                             boolean isCaseSensitive )
+    private boolean matchAntPathPatternStart(Filter pattern, char[][] vpath, char separator)
     {
 
         if ( separatorPatternStartSlashMismatch( pattern, vpath, separator ) )

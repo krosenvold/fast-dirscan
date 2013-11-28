@@ -15,8 +15,11 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- */package org.smartscan.api;
+ */
+package org.smartscan.api;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,73 +27,68 @@ import java.nio.file.LinkOption;
 import java.nio.file.attribute.BasicFileAttributes;
 
 public class Java7SmartFile implements SmartFile {
-    private BasicFileAttributes basicFileAttributes;
+    @Nonnull
+    private final BasicFileAttributes fileAttributes;
+    @Nullable
+    private final BasicFileAttributes symlinkFileAttributes;
     private final File file;
 
     private final char[][] parentVpath;
-	private final char[] fileNameChar;
+    private final char[] fileNameChar;
 
-    private Java7SmartFile(File file, char[][] parentVpath)
-    {
+    private Java7SmartFile(File file, char[][] parentVpath) {
         this.file = file;
-		//noinspection AssignmentToCollectionOrArrayFieldFromParameter
-		this.parentVpath = parentVpath;
-		this.basicFileAttributes = getBasicFileAttributes(file);
-		this.fileNameChar = file.getName().toCharArray();
+        //noinspection AssignmentToCollectionOrArrayFieldFromParameter
+        this.parentVpath = parentVpath;
+        BasicFileAttributes rawAttrs = readAttributes(file, LinkOption.NOFOLLOW_LINKS);
+        if (rawAttrs.isSymbolicLink()) {
+            symlinkFileAttributes = rawAttrs;
+            fileAttributes = readAttributes(file);
+        } else {
+            fileAttributes = rawAttrs;
+            symlinkFileAttributes = null;
+        }
+        fileNameChar = file.getName().toCharArray();
     }
 
-	public static SmartFile createSmartFile(File file, char[][] parentVpath) {
+    public static SmartFile createSmartFile(File file, char[][] parentVpath) {
         return new Java7SmartFile(file, parentVpath);
-	}
-
-	private static BasicFileAttributes getBasicFileAttributes(File file) {
-		BasicFileAttributes basicFileAttributes;
-		try
-		{
-			basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-		}
-		catch ( IOException e )
-		{
-			throw new RuntimeException(e);
-		}
-		return basicFileAttributes;
-	}
+    }
 
 
-	@Override
+    @Override
     public boolean isFile() {
-        return basicFileAttributes.isRegularFile();
+        return fileAttributes.isRegularFile();
     }
 
     @Override
     public boolean isDirectory() {
-        return basicFileAttributes.isDirectory();
+        return fileAttributes.isDirectory();
     }
 
     @Override
     public boolean isSymbolicLink() {
-        return basicFileAttributes.isSymbolicLink();
+        return symlinkFileAttributes != null;
     }
 
-    public File getFile()
-    {
+    public File getFile() {
         return file;
     }
 
-    public String getVpath(){
+    public String getVpath() {
         StringBuilder result = new StringBuilder();
         for (char[] chars : parentVpath) {
             result.append(chars);
             result.append(File.separatorChar);
         }
-        result.append( file.getName());
+        result.append(file.getName());
         return result.toString();
     }
 
     @Override
     public int compareTo(Object o) {
         // TODO: Cant do this for proxies
-        return file.getPath().compareTo( ((Java7SmartFile)o).file.getPath());
+        return file.getPath().compareTo(((Java7SmartFile) o).file.getPath());
     }
 
     @Override
@@ -98,17 +96,25 @@ public class Java7SmartFile implements SmartFile {
         return getVpath();
     }
 
-	@Override
-	public File[] listFiles() {
-		return file.listFiles();
-	}
+    @Override
+    public File[] listFiles() {
+        return file.listFiles();
+    }
 
-	public char[] getFileNameChar() {
-		return fileNameChar;
-	}
+    public char[] getFileNameChar() {
+        return fileNameChar;
+    }
 
-	@Override
-	public char[][] getParentVpath() {
-		return parentVpath;
-	}
+    @Override
+    public char[][] getParentVpath() {
+        return parentVpath;
+    }
+
+    private static BasicFileAttributes readAttributes(File file, LinkOption... options) {
+        try {
+            return Files.readAttributes(file.toPath(), BasicFileAttributes.class, options);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

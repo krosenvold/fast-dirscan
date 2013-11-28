@@ -18,7 +18,6 @@ public class MultiReader
         extends ModernBase {
 
     public static final char[][] NO_FILES_VPATH_ = new char[0][];
-    public static final SmartFile[] NO_SMARTFILES = new SmartFile[0];
 
     private final ForkJoinPool executor;
 
@@ -92,20 +91,18 @@ public class MultiReader
                         }
                     } else if (smartFile.isDirectory()) {
                         if (shouldInclude || couldHoldIncluded(mutablevpath)) {
-                            if (followSymlinks || !smartFile.isSymbolicLink()) {
-                                if (dirReceiver != null) dirReceiver.accept(smartFile);
-                                if (firstDir == null) {
-                                    firstDir = smartFile;
-                                    firstVpath = copy(mutablevpath);
-                                } else {
-                                    final char[][] copy = copy(mutablevpath);
-                                    new RecursiveAction() {
-                                        @Override
-                                        protected void compute() {
-                                            scandir(smartFile, copy);
-                                        }
-                                    }.fork(); // Todo: fix swallowed exceptions
-                                }
+                            if (dirReceiver != null) dirReceiver.accept(smartFile);
+                            if (firstDir == null) {
+                                firstDir = smartFile;
+                                firstVpath = copy(mutablevpath);
+                            } else {
+                                final char[][] copy = copy(mutablevpath);
+                                new RecursiveAction() {
+                                    @Override
+                                    protected void compute() {
+                                        scandir(smartFile, copy);
+                                    }
+                                }.fork(); // Todo: fix swallowed exceptions
                             }
                         }
                     }

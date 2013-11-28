@@ -11,23 +11,7 @@ public class ModernBase
 
     protected final Filters excludesPatterns;
 
-    public static final String POISON = "*POISON*";
-
-    /**
-     * Whether or not the file system should be treated as a case sensitive
-     * one.
-     */
-    private static final boolean isCaseSensitive = true;
-
-    @SuppressWarnings( "MethodCanBeVariableArityMethod" )
-    public ModernBase( File basedir, String[] includes, String[] excludes )
-    {
-        this.basedir = basedir;
-        includesPatterns = Filters.from(ScannerTools.getIncludes(includes));
-        excludesPatterns = Filters.from(ScannerTools.getExcludes(excludes));
-    }
-
-	protected ModernBase( File basedir, Filters includes, Filters excludes )
+    protected ModernBase( File basedir, Filters includes, Filters excludes )
 	{
 		this.basedir = basedir;
 		includesPatterns =  includes ;
@@ -36,7 +20,7 @@ public class ModernBase
 
 	protected boolean couldHoldIncluded( char[][] tokenizedvpath )
     {
-        return includesPatterns.matchesPatternStart( tokenizedvpath, isCaseSensitive);
+        return includesPatterns.matchesPatternStart( tokenizedvpath);
     }
 
     protected static void doSleep( int millis )
@@ -53,8 +37,8 @@ public class ModernBase
     }
 
     public boolean shouldInclude( char[][] tokenizedVpath ){
-        return includesPatterns.matches( tokenizedVpath, isCaseSensitive )
-            && !excludesPatterns.matches( tokenizedVpath, isCaseSensitive );
+        return includesPatterns.matches( tokenizedVpath)
+            && !excludesPatterns.matches( tokenizedVpath);
     }
 
     public static char[][] copy( char[][] original )
