@@ -21,7 +21,6 @@ package org.smartscan;
 
 import org.codehaus.plexus.util.FileUtils;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -175,7 +174,7 @@ public class DirectoryScannerTest {
 
 
         SimpleListReceiver receiver = new SimpleListReceiver();
-        ds.scan2(receiver);
+        ds.scan(receiver);
 
         checkFiles("expectedIncludedFiles", expectedIncludedFiles, receiver.getResult());
         //     checkFiles( "expectedIncludedDirectories", expectedIncludedDirectories, ds.getIncludedDirectories() );

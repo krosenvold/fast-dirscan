@@ -39,11 +39,17 @@ public class SmartScanner {
 	}
 
 
-    public void scan2(SmartFileReceiver smartFileReceiver) throws InterruptedException {
-		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, smartFileReceiver, nThreads);
+    public void scan(SmartFileReceiver fileReceiver) throws InterruptedException {
+		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, nThreads);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
+
+    public void scanReference(SmartFileReceiver fileReceiver) throws InterruptedException {
+        ReferenceMultiReader multiReader = new ReferenceMultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, nThreads);
+        multiReader.beginThreadedScan();
+        multiReader.awaitCompletion();
+    }
 
 	public void addDefaultExcludes()
 	{

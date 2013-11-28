@@ -23,7 +23,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.smartscan.api.SmartFile;
 import org.smartscan.api.SmartFileReceiver;
@@ -53,6 +52,7 @@ public class BenchmarkTest
             assertThat( cachingMultiThreaded(file, 10) ).as( "cmr" ).isEqualTo( expected);
 			assertThat( cachingMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
             assertThat( cachingMultiThreaded(file, 16) ).as( "cmr" ).isEqualTo( expected);
+            assertThat( benchmarkMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
             System.out.println( "" );
         }
 
@@ -90,7 +90,7 @@ public class BenchmarkTest
 		{
 			SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
 
-			ss.scan2(ffr);
+			ss.scan(ffr);
 
 			return ffr.recvd.get();
 		}
@@ -99,6 +99,26 @@ public class BenchmarkTest
 			System.out.print( ", CMR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
 		}
 	}
+
+    private static int benchmarkMultiThreaded( File basedir, int nThreads )
+            throws InterruptedException
+    {
+        long milliStart = System.currentTimeMillis();
+        ConcurrentFileReceiver ffr = new ConcurrentFileReceiver();
+        try
+        {
+            SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
+
+            ss.scanReference(ffr);
+
+            return ffr.recvd.get();
+        }
+        finally
+        {
+            System.out.print( ", RMR" + nThreads + "(" + ffr.firstSeenAt + ")=" + ( System.currentTimeMillis() - milliStart ) );
+        }
+    }
+
 
     static class ConcurrentFileReceiver
         implements SmartFileReceiver
