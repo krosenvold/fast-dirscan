@@ -92,20 +92,18 @@ public class MultiReader
                         }
                     } else if (smartFile.isDirectory()) {
                         if (shouldInclude || couldHoldIncluded(mutablevpath)) {
-                            if (followSymlinks || !smartFile.isSymbolicLink()) {
-                                if (dirReceiver != null) dirReceiver.accept(smartFile);
-                                if (firstDir == null) {
-                                    firstDir = smartFile;
-                                    firstVpath = copy(mutablevpath);
-                                } else {
-                                    final char[][] copy = copy(mutablevpath);
-                                    new RecursiveAction() {
-                                        @Override
-                                        protected void compute() {
-                                            scandir(smartFile, copy);
-                                        }
-                                    }.fork(); // Todo: fix swallowed exceptions
-                                }
+                            if (dirReceiver != null) dirReceiver.accept(smartFile);
+                            if (firstDir == null) {
+                                firstDir = smartFile;
+                                firstVpath = copy(mutablevpath);
+                            } else {
+                                final char[][] copy = copy(mutablevpath);
+                                new RecursiveAction() {
+                                    @Override
+                                    protected void compute() {
+                                        scandir(smartFile, copy);
+                                    }
+                                }.fork(); // Todo: fix swallowed exceptions
                             }
                         }
                     }

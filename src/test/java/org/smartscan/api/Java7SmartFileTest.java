@@ -20,7 +20,7 @@ public class Java7SmartFileTest {
         File symLinkToDir = new File("src/test/resources/symlink-test/toD3");
         final SmartFile smartFile = Java7SmartFile.createSmartFile(symLinkToDir, new char[0][]);
         assertTrue(symLinkToDir.isDirectory()); // Note; describes symlink target
-        assertFalse( smartFile.isDirectory()); // And YESS !
+        assertTrue( smartFile.isDirectory()); // And YESS !
         assertTrue(smartFile.isSymbolicLink());
     }
 
