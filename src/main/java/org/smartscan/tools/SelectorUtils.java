@@ -76,22 +76,22 @@ public final class SelectorUtils
             && pattern.startsWith( ANT_HANDLER_PREFIX ) && pattern.endsWith( PATTERN_HANDLER_SUFFIX );
     }
 
-    static boolean matchAntPathPattern( char[][] patDirs, char[][] strDirs, boolean isCaseSensitive )
+    static boolean matchAntPathPattern( char[][] patterns, char[][] directories, boolean isCaseSensitive )
     {
         int patIdxStart = 0;
-        int patIdxEnd = patDirs.length - 1;
+        int patIdxEnd = patterns.length - 1;
         int strIdxStart = 0;
-        int strIdxEnd = strDirs.length - 1;
+        int strIdxEnd = directories.length - 1;
 
         // up to first '**'
         while ( patIdxStart <= patIdxEnd && strIdxStart <= strIdxEnd )
         {
-            char[] patDir = patDirs[patIdxStart];
-            if ( isDoubleStar( patDir ) )
+            char[] pattern = patterns[patIdxStart];
+            if ( isDoubleStar( pattern ) )
             {
                 break;
             }
-            if ( !match( patDir, strDirs[strIdxStart], isCaseSensitive ) )
+            if ( !match( pattern, directories[strIdxStart], isCaseSensitive ) )
             {
                 return false;
             }
@@ -103,7 +103,7 @@ public final class SelectorUtils
             // String is exhausted
             for ( int i = patIdxStart; i <= patIdxEnd; i++ )
             {
-                if ( !isDoubleStar( patDirs[i] ) )
+                if ( !isDoubleStar( patterns[i] ) )
                 {
                     return false;
                 }
@@ -119,12 +119,12 @@ public final class SelectorUtils
         // up to last '**'
         while ( patIdxStart <= patIdxEnd && strIdxStart <= strIdxEnd )
         {
-            char[] patDir = patDirs[patIdxEnd];
-            if ( isDoubleStar( patDir ) )
+            char[] pattern = patterns[patIdxEnd];
+            if ( isDoubleStar( pattern ) )
             {
                 break;
             }
-            if ( !match( patDir, strDirs[strIdxEnd], isCaseSensitive ) )
+            if ( !match( pattern, directories[strIdxEnd], isCaseSensitive ) )
             {
                 return false;
             }
@@ -136,7 +136,7 @@ public final class SelectorUtils
             // String is exhausted
             for ( int i = patIdxStart; i <= patIdxEnd; i++ )
             {
-                if ( !isDoubleStar( patDirs[i] ) )
+                if ( !isDoubleStar( patterns[i] ) )
                 {
                     return false;
                 }
@@ -149,7 +149,7 @@ public final class SelectorUtils
             int patIdxTmp = -1;
             for ( int i = patIdxStart + 1; i <= patIdxEnd; i++ )
             {
-                if ( isDoubleStar( patDirs[i] ) )
+                if ( isDoubleStar( patterns[i] ) )
                 {
                     patIdxTmp = i;
                     break;
@@ -171,8 +171,8 @@ public final class SelectorUtils
             {
                 for ( int j = 0; j < patLength; j++ )
                 {
-                    char[] subPat = patDirs[patIdxStart + j + 1];
-                    char[] subStr = strDirs[strIdxStart + i + j];
+                    char[] subPat = patterns[patIdxStart + j + 1];
+                    char[] subStr = directories[strIdxStart + i + j];
                     if ( !match( subPat, subStr, isCaseSensitive ) )
                     {
                         continue strLoop;
@@ -194,7 +194,7 @@ public final class SelectorUtils
 
         for ( int i = patIdxStart; i <= patIdxEnd; i++ )
         {
-            if ( !isDoubleStar( patDirs[i] ) )
+            if ( !isDoubleStar( patterns[i] ) )
             {
                 return false;
             }

@@ -35,7 +35,7 @@ public class FilterTest
         throws Exception
     {
         Filter mp = new Filter( "ABC*", true);
-        assertTrue( mp.matchAntPath(tokenizePathToCharArray("ABCD", 'x'), true) );
+        assertTrue( mp.matchAntPath(tokenizePathToCharArray("ABCD", 'x')) );
     }
 
     @Test

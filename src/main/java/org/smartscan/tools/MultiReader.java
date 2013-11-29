@@ -18,7 +18,6 @@ public class MultiReader
         extends ModernBase {
 
     public static final char[][] NO_FILES_VPATH_ = new char[0][];
-    public static final SmartFile[] NO_SMARTFILES = new SmartFile[0];
 
     private final ForkJoinPool executor;
 

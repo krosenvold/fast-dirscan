@@ -35,9 +35,9 @@ public class FiltersTest
         throws Exception
     {
         Filters from = Filters.from(true, "ABC**", "CDE**" );
-        assertTrue( from.matches( tokenizePathToCharArray("ABCDE", 'x'), true ) );
-        assertTrue( from.matches( tokenizePathToCharArray("CDEF", 'x'), true ) );
-        assertFalse(from.matches(tokenizePathToCharArray("XYZ", 'x'), true));
+        assertTrue( from.matches( tokenizePathToCharArray("ABCDE", 'x')) );
+        assertTrue( from.matches( tokenizePathToCharArray("CDEF", 'x')) );
+        assertFalse(from.matches(tokenizePathToCharArray("XYZ", 'x')));
     }
 
 	@Test
@@ -45,10 +45,10 @@ public class FiltersTest
 		Filters s1 = Filters.from(true, "ABC**", "CDE**" );
 		Filters s2 = Filters.from(true, "XX**", "YY**" );
 		Filters result = s1.append( s2);
-		assertTrue( result.matches( tokenizePathToCharArray("ABCDE", 'x'), true ) );
-		assertTrue( result.matches( tokenizePathToCharArray("CDE", 'x'), true ) );
-		assertTrue( result.matches( tokenizePathToCharArray("XXA", 'x'), true ) );
-		assertTrue( result.matches( tokenizePathToCharArray("YYZ", 'x'), true ) );
+		assertTrue( result.matches( tokenizePathToCharArray("ABCDE", 'x')) );
+		assertTrue( result.matches( tokenizePathToCharArray("CDE", 'x')) );
+		assertTrue( result.matches( tokenizePathToCharArray("XXA", 'x')) );
+		assertTrue( result.matches( tokenizePathToCharArray("YYZ", 'x')) );
 
 	}
 
@@ -56,7 +56,7 @@ public class FiltersTest
 	public void appendEmpty(){
 		Filters s1 = Filters.from(true, "ABC**");
 		Filters result = s1.append(Filters.from(true));
-		assertTrue( result.matches( tokenizePathToCharArray("ABCDE", 'x'), true ) );
+		assertTrue( result.matches( tokenizePathToCharArray("ABCDE", 'x')) );
 
 
 	}

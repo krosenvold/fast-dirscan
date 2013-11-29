@@ -90,11 +90,11 @@ public class Filters
 	}
 
 
-	public boolean matches( char[][] tokenizedVpath, boolean isCaseSensitive )
+	public boolean matches(char[][] tokenizedVpath)
     {
         for ( Filter pattern : antPatterns )
         {
-            if ( pattern.matchAntPath( tokenizedVpath, isCaseSensitive ) )
+            if ( pattern.matchAntPath( tokenizedVpath) )
             {
                 return true;
             }
@@ -130,7 +130,7 @@ public class Filters
         return result;
     }
 
-    public boolean matchesPatternStart( char[][] tokenizedVpath, boolean isCaseSensitive )
+    public boolean matchesPatternStart(char[][] tokenizedVpath)
     {
         if ( regexPatterns.length > 0 )
         {
@@ -138,7 +138,7 @@ public class Filters
         }
         for ( Filter includesPattern : antPatterns )
         {
-            if ( includesPattern.matchPatternStart( tokenizedVpath, isCaseSensitive ) )
+            if ( includesPattern.matchPatternStart( tokenizedVpath) )
             {
                 return true;
             }

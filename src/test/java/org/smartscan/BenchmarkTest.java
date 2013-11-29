@@ -47,7 +47,6 @@ public class BenchmarkTest
         {
             assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
             Assert.assertEquals("12 mtsr", expected +1 , multiThreadedSingleReceiver(file, 12));
-            assertThat( multiThreadedSingleReceiver( file, 8 ) ).as("8 mtsr").isEqualTo(expected + 1);
             assertThat( multiThreadedSingleReceiver(file, 4) ).as( "4 mtsr" ).isEqualTo( expected +1 );
             assertThat( cachingMultiThreaded(file, 10) ).as( "cmr" ).isEqualTo( expected);
 			assertThat( cachingMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
