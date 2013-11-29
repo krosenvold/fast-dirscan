@@ -59,6 +59,18 @@ public class Filters
         regexPatterns = regex.toArray( new Filter[regex.size()] );
     }
 
+    private Filter[] transformCase(boolean caseSensitive){
+        Filter[] result = new Filter[antPatterns.length + regexPatterns.length];
+        int pos = 0;
+        for (Filter antPattern : antPatterns) {
+            result[pos++] = new Filter(antPattern, caseSensitive);
+        }
+        for (Filter antPattern : regexPatterns) {
+            result[pos++] = new Filter(antPattern, caseSensitive);
+        }
+        return result;
+    }
+
 	public Filters(Filter[] antPatterns, Filter[] regexPatterns) {
 		this.antPatterns = antPatterns;
 		this.regexPatterns = regexPatterns;
@@ -134,15 +146,25 @@ public class Filters
         return false;
     }
 
-    @Nonnull public static Filters from( String... sources )
+    @Nonnull public static Filters from(boolean caseSensitive, String... sources)
     {
         final int length = sources.length;
         Filter[] result = new Filter[length];
         for ( int i = 0; i < length; i++ )
         {
-            result[i] = new Filter(sources[i]);
+            result[i] = new Filter(sources[i], caseSensitive);
         }
         return new Filters( result );
+    }
+
+    @Nonnull public Filters changeCase(boolean caseSensitive)
+    {
+        return from( caseSensitive, this);
+    }
+
+    @Nonnull public static Filters from(boolean caseSensitive, Filters source)
+    {
+        return new Filters(source.transformCase(caseSensitive));
     }
 
 

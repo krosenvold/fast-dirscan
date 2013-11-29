@@ -5,6 +5,7 @@ import org.smartscan.api.SmartFile;
 import org.smartscan.api.SmartFileReceiver;
 import org.smartscan.tools.*;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Iterator;
 
@@ -13,17 +14,20 @@ import java.util.Iterator;
  */
 public class SmartScanner {
 
-	private Filters includesPatterns;
-	private Filters excludesPatterns;
+	private @Nonnull
+    Filters includesPatterns;
+	private @Nonnull Filters excludesPatterns;
 	private File basedir;
 	private int nThreads;
     private SmartFileReceiver dirListener;
+    private boolean caseSensitive;
+    private boolean followSymlinks = true;
 
     public SmartScanner(File basedir, String[] includes, String[] excludes, int nThreads) {
 		this.basedir = basedir;
 		this.nThreads = nThreads;
-		includesPatterns = Filters.from(ScannerTools.getIncludes(includes));
-		excludesPatterns = Filters.from(ScannerTools.getExcludes(excludes));
+		includesPatterns = Filters.from(caseSensitive, ScannerTools.getIncludes(includes));
+		excludesPatterns = Filters.from(caseSensitive, ScannerTools.getExcludes(excludes));
 	}
 
 	public Iterable<SmartFile> scan() {
@@ -41,7 +45,7 @@ public class SmartScanner {
 
 
     public void scan(SmartFileReceiver fileReceiver) throws InterruptedException {
-		MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, dirListener, nThreads, true);
+        MultiReader multiReader = new MultiReader(basedir, includesPatterns, excludesPatterns, fileReceiver, dirListener, nThreads, followSymlinks);
 		multiReader.beginThreadedScan();
 		multiReader.awaitCompletion();
 	}
@@ -54,7 +58,7 @@ public class SmartScanner {
 
 	public void addDefaultExcludes()
 	{
-		excludesPatterns = Filters.join(excludesPatterns, Filters.from(AbstractScanner.DEFAULTEXCLUDES));
+		excludesPatterns = Filters.join(excludesPatterns, Filters.from(caseSensitive, AbstractScanner.DEFAULTEXCLUDES));
 	}
 
 	public void setBasedir(File basedir) {
@@ -62,25 +66,25 @@ public class SmartScanner {
 	}
 
 	public void setExcludes(String excludes){
-		this.excludesPatterns = Filters.from( excludes);
+		this.excludesPatterns = Filters.from(caseSensitive, excludes);
 	}
 
 	public void setIncludes(String includes){
-		this.includesPatterns = Filters.from( includes);
+		this.includesPatterns = Filters.from(caseSensitive, includes);
 	}
 
 	public void setFollowSymlinks(){
+        this.followSymlinks = true;
 
 	}
 
-	public void setCaseSensitive(){
-
+	public void setCaseSensitive(boolean caseSensitive){
+        this.caseSensitive = caseSensitive;
+        this.excludesPatterns = excludesPatterns.changeCase(caseSensitive);
+        this.includesPatterns = includesPatterns.changeCase(caseSensitive);
 	}
 
 	public void setDirectoryListener(SmartFileReceiver smartFileReceiver){
         this.dirListener = smartFileReceiver;
 	}
-
-
-	// And also: getIncludedDirectories
 }

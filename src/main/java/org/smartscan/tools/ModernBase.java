@@ -19,15 +19,7 @@ public class ModernBase
      */
     private static final boolean isCaseSensitive = true;
 
-    @SuppressWarnings( "MethodCanBeVariableArityMethod" )
-    public ModernBase( File basedir, String[] includes, String[] excludes )
-    {
-        this.basedir = basedir;
-        includesPatterns = Filters.from(ScannerTools.getIncludes(includes));
-        excludesPatterns = Filters.from(ScannerTools.getExcludes(excludes));
-    }
-
-	protected ModernBase( File basedir, Filters includes, Filters excludes )
+    protected ModernBase( File basedir, Filters includes, Filters excludes )
 	{
 		this.basedir = basedir;
 		includesPatterns =  includes ;

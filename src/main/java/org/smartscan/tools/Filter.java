@@ -47,8 +47,11 @@ public class Filter
     @Nonnull
     private final char[][] tokenizedChar;
 
-	public Filter(@Nonnull String source)
+    private final boolean isCaseSensitive;
+
+	public Filter(@Nonnull String source, boolean caseSensitive)
     {
+        isCaseSensitive = caseSensitive;
         //noinspection AssignmentToNull
         String regexPatternStr = SelectorUtils.isRegexPrefixedPattern( source ) ? source.substring(
             SelectorUtils.REGEX_HANDLER_PREFIX.length(),
@@ -64,6 +67,13 @@ public class Filter
         tokenizedChar = tokenizePathToCharArray( this.source, File.separatorChar );
     }
 
+    public Filter(@Nonnull Filter source, boolean caseSensitive)
+    {
+        regexPattern = source.regexPattern;
+        this.source = source.source;
+        this.isCaseSensitive = caseSensitive;
+        this.tokenizedChar = source.tokenizedChar;
+    }
 
     private static boolean separatorPatternStartSlashMismatch( Filter filter, char[][] vpath, char separator )
     {
