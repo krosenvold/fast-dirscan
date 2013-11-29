@@ -208,52 +208,7 @@ public final class SelectorUtils
         return patDir != null && patDir.length == 2 && patDir[0] == '*' && patDir[1] == '*';
     }
 
-    /**
-     * Tests whether or not a string matches against a pattern.
-     * The pattern may contain two special characters:<br>
-     * '*' means zero or more characters<br>
-     * '?' means one and only one character
-     *
-     * @param pattern The pattern to match against.
-     *                Must not be {@code null}.
-     * @param str     The string which must be matched against the pattern.
-     *                Must not be {@code null}.
-     * @return {@code true} if the string matches against the pattern,
-     * or {@code false} otherwise.
-     */
-    public static boolean match( String pattern, String str )
-    {
-        return match( pattern, str, true );
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    /**
-     * Tests whether or not a string matches against a pattern.
-     * The pattern may contain two special characters:<br>
-     * '*' means zero or more characters<br>
-     * '?' means one and only one character
-     *
-     * @param pattern         The pattern to match against.
-     *                        Must not be {@code null}.
-     * @param str             The string which must be matched against the pattern.
-     *                        Must not be {@code null}.
-     * @param isCaseSensitive Whether or not matching should be performed
-     *                        case sensitively.
-     * @return {@code true} if the string matches against the pattern,
-     * or {@code false} otherwise.
-     */
-    public static boolean match( String pattern, String str, boolean isCaseSensitive )
-    {
-        char[] patArr = pattern.toCharArray();
-        char[] strArr = str.toCharArray();
-        return match( patArr, strArr, isCaseSensitive );
-    }
-
-    public static boolean match( char[] pattern, char[] strArr, boolean isCaseSensitive )
+    private static boolean match( char[] pattern, char[] strArr, boolean isCaseSensitive )
     {
         int patIdxStart = 0;
         int patIdxEnd = pattern.length - 1;
