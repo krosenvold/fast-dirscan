@@ -41,16 +41,18 @@ public class BenchmarkTest
     {
         assertThat( 1 ).isEqualTo( 1 );
 		final File file = new File( "src/test/testdata/perftestData" );
-        final int expected = scanOriginal( file ).length;
+        final int expected = scanOriginal( file, false).length;
         System.out.println( "Warmup complete" );
         for ( int i = 0; i < 10; i++ )
         {
-            assertThat( scanOriginal( file ).length ).as( "original result" ).isEqualTo( expected );
-            Assert.assertEquals("12 mtsr", expected +1 , multiThreadedSingleReceiver(file, 12));
+            //assertThat( scanOriginal( file, false).length ).as( "original result" ).isEqualTo(expected);
+            //assertThat( scanOriginal( file, true).length ).as( "w excl" ).isEqualTo(expected);
+            Assert.assertEquals("12 mtsr", expected + 1, multiThreadedSingleReceiver(file, 12));
             assertThat( multiThreadedSingleReceiver(file, 4) ).as( "4 mtsr" ).isEqualTo( expected +1 );
-            assertThat( cachingMultiThreaded(file, 10) ).as( "cmr" ).isEqualTo( expected);
-			assertThat( cachingMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
-            assertThat( cachingMultiThreaded(file, 16) ).as( "cmr" ).isEqualTo( expected);
+            assertThat( cachingMultiThreaded(file, 10, false) ).as( "cmr" ).isEqualTo( expected);
+			assertThat( cachingMultiThreaded(file, 12, false) ).as( "cmr" ).isEqualTo( expected);
+            assertThat( cachingMultiThreaded(file, 16, false) ).as( "cmr" ).isEqualTo( expected);
+            assertThat( cachingMultiThreaded(file, 12, true) ).as( "cmrwex " );
             assertThat( benchmarkMultiThreaded(file, 12) ).as( "cmr" ).isEqualTo( expected);
             System.out.println( "" );
         }
@@ -80,7 +82,7 @@ public class BenchmarkTest
         }
     }
 
-    private static int cachingMultiThreaded( File basedir, int nThreads )
+    private static int cachingMultiThreaded(File basedir, int nThreads, boolean addDfeaultExcludes)
 			throws InterruptedException
 	{
 		long milliStart = System.currentTimeMillis();
@@ -88,6 +90,7 @@ public class BenchmarkTest
 		try
 		{
 			SmartScanner ss = new SmartScanner(basedir, null, null, nThreads);
+            if (addDfeaultExcludes) ss.addDefaultExcludes();
 
 			ss.scan(ffr);
 
@@ -141,7 +144,7 @@ public class BenchmarkTest
         }
     }
 
-	private static String[] scanOriginal( File file )
+	private static String[] scanOriginal(File file, boolean addDefaultExcludes)
     {
         long start = System.currentTimeMillis();
         try
@@ -151,6 +154,7 @@ public class BenchmarkTest
             directoryScanner.setExcludes( null );
             directoryScanner.setBasedir( file );
             directoryScanner.scan();
+            if (addDefaultExcludes) directoryScanner.addDefaultExcludes();
 
             final String[] includedFiles = directoryScanner.getIncludedFiles();
             int size = includedFiles.length;
